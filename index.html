@@ -713,6 +713,31 @@
     cursor: pointer; color: var(--ink-2); font-size: 13px; display: grid; place-items: center; }
   .ga-del:hover { background: var(--danger-bg); color: var(--danger); border-color: var(--danger-br); }
 
+  /* graduation tracker (simulated pilot acceptance history) */
+  .ah-pilot { font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3);
+    background: #f2f4f7; border: 1px solid var(--line); border-radius: 999px; padding: 1px 7px; margin-left: 8px; vertical-align: middle; }
+  .ah-list { border: 1px solid var(--line-2); border-radius: 12px; overflow: hidden; max-width: 1000px; }
+  .ah-head { display: flex; gap: 12px; padding: 11px 14px; background: #f9fafb; border-bottom: 1px solid var(--line-2); }
+  .ah-head > div { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #98a2b3; }
+  .ah-head > div:first-child { flex: 1 1 auto; }
+  .ah-head > div:nth-child(2) { flex: 0 0 250px; }
+  .ah-head > div:last-child { flex: 0 0 124px; }
+  .ah-row { display: flex; gap: 12px; align-items: center; padding: 13px 14px; border-bottom: 1px solid var(--line-2); }
+  .ah-row:last-child { border-bottom: none; }
+  .ah-rule { flex: 1 1 auto; min-width: 0; font-size: 13.5px; font-weight: 600; color: #101828; }
+  .ah-meter { flex: 0 0 250px; }
+  .ah-bar { position: relative; height: 7px; border-radius: 4px; background: #eaecf0; overflow: hidden; }
+  .ah-bar span { display: block; height: 100%; border-radius: 4px; background: #98a2b3; }
+  .ah-bar span.ok { background: var(--ok); }
+  .ah-bar::after { content: ""; position: absolute; left: 95%; top: 0; bottom: 0; width: 2px; background: var(--warn); opacity: .55; }
+  .ah-stat { font-size: 11.5px; color: var(--ink-3); margin-top: 5px; }
+  .ah-stat b { color: var(--ink-2); }
+  .ah-status { flex: 0 0 124px; }
+  .ah-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+  .ah-badge.ok { color: var(--ok); background: var(--ok-bg); border: 1px solid var(--ok-br); }
+  .ah-badge.review { color: var(--ink-3); background: #f2f4f7; border: 1px solid var(--line); }
+  .ah-badge.collect { color: var(--warn); background: var(--warn-bg); border: 1px solid var(--warn-br); }
+
   .add-cat { margin-bottom: 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
   .add-cat select { height: 40px; min-width: 230px; border: 1px solid var(--line); border-radius: 9px; padding: 0 12px; font-family: inherit; font-size: 13.5px; color: var(--blue); font-weight: 600; background: #fff; cursor: pointer; }
 
@@ -1986,7 +2011,22 @@ let rulesCreated = false;
 let rules = [];                 // [{ conditions:[{category, criteria, amount, unit}], assign }] in rank order
 let rulesTab = 'hierarchy';     // 'hierarchy' | 'autoassign'
 let gates = [{ category:'Industry', industries:['Federal'] }];  // category+criteria that ALWAYS force manual review
-let autoThreshold = 50;          // # of data points before a category/criteria graduates to autoassign
+let autoThreshold = 20;          // # of data points before a category/criteria graduates to autoassign
+/* simulated pilot acceptance history (category+criteria -> data points & accept rate). */
+const ACCEPTANCE = [
+  { label:'Contractor X → Dallas team',          points:24, rate:96 },
+  { label:'Hospital or lab → Dana Brooks',       points:31, rate:97 },
+  { label:'GRD-only under $25k → Bob Tran',      points:22, rate:95 },
+  { label:'Above $250,000 → Greg Olsen',         points:27, rate:89 },
+  { label:'Spiral duct → Mark Reyes',            points:16, rate:94 },
+  { label:'School + North Texas → Sarah Okafor', points:8,  rate:100 },
+];
+function graduationStatus(a){
+  const N = parseInt(autoThreshold) || 0;
+  if (a.points >= N && a.rate >= 95) return { cls:'ok',      label:'Autoassign' };
+  if (a.points <  N)                 return { cls:'collect',  label:`Collecting ${a.points}/${N}` };
+  return { cls:'review', label:'Manual review' };               // enough data, but under 95%
+}
 const ADMIN_PW = 'rebar';
 const exceptionRow = `<div class="rt-exception"><b>Exception</b> · Doesn't fit the rules cleanly → Bid coordinator manually assigns the bid.</div>`;
 
@@ -2115,7 +2155,22 @@ function renderAutoassignTab(){
     </div>
     <div class="ga-sec-h">Always require manual review</div>
     ${list}
-    <button class="m-btn add-rank" id="gaAdd">＋ Add manual-review gate</button>`;
+    <button class="m-btn add-rank" id="gaAdd">＋ Add manual-review gate</button>
+
+    <div class="ga-sec-h" style="margin-top:26px">Graduation tracker <span class="ah-pilot">pilot data</span></div>
+    <div class="rules-sub" style="margin-bottom:12px">Each category + criteria pair tracks how often the coordinator and estimator accept its recommendation. Once a pair clears <b>${autoThreshold || 0} data points</b> at <b>≥ 95%</b> acceptance it graduates to autoassign; the rest stay in manual review while data accrues. Edit the threshold above to see what graduates.</div>
+    <div class="ah-list">
+      <div class="ah-head"><div>Category → assignment</div><div>Acceptance (95% bar)</div><div>Status</div></div>
+      ${ACCEPTANCE.map(a => { const st = graduationStatus(a); return `
+        <div class="ah-row">
+          <div class="ah-rule">${a.label}</div>
+          <div class="ah-meter">
+            <div class="ah-bar"><span class="${a.rate>=95?'ok':''}" style="width:${a.rate}%"></span></div>
+            <div class="ah-stat"><b>${a.rate}%</b> accepted · ${a.points} data pts</div>
+          </div>
+          <div class="ah-status"><span class="ah-badge ${st.cls}">${st.label}</span></div>
+        </div>`; }).join('')}
+    </div>`;
 }
 
 const categoryOptionsHtml = sel => `<option value="">Select a category</option>` +
@@ -2242,6 +2297,7 @@ rulesWrap.addEventListener('change', e => {
   else if (t.classList.contains('rt-valop')) condFor(t).op = t.value;
   else if (t.classList.contains('rt-onlychk')) condFor(t).only = t.checked;
   else if (t.classList.contains('rt-asg')) rules[+t.dataset.r].assign = t.value;
+  else if (t.classList.contains('ga-thresh')) renderRules();   // recompute graduation on commit
 });
 rulesWrap.addEventListener('click', e => {
   const btn = e.target.closest('button'); if (!btn) return;
