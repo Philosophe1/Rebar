@@ -690,6 +690,12 @@
   .ga-policy ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
   .ga-policy li { font-size: 13px; color: var(--ink-2); line-height: 1.45; padding-left: 16px; position: relative; }
   .ga-policy li::before { content: ""; position: absolute; left: 2px; top: 7px; width: 5px; height: 5px; border-radius: 50%; background: #cdd2de; }
+  .ga-policy ul.ga-policy-sub { margin: 8px 0 2px; gap: 6px; }
+  .ga-policy-sub li { font-size: 12.5px; color: var(--ink-3); line-height: 1.55; padding-left: 18px; }
+  .ga-policy-sub li::before { content: ""; left: 4px; top: 7px; width: 5px; height: 5px; border-radius: 50%; background: #fff; border: 1.5px solid #cdd2de; }
+  .ga-thresh { width: 52px; height: 25px; border: 1px solid var(--line); border-radius: 6px; padding: 0 6px; margin: 0 2px;
+    font-family: inherit; font-size: 12.5px; color: var(--ink); text-align: center; box-sizing: border-box; vertical-align: baseline; }
+  .ga-thresh:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(53,54,229,.12); }
   .ga-sec-h { font-size: 13px; font-weight: 700; color: #101828; margin: 0 0 10px; }
   .ga-list { border: 1px solid var(--line-2); border-radius: 12px; overflow: hidden; max-width: 1000px; margin-bottom: 14px; }
   .ga-head { display: flex; gap: 12px; padding: 11px 14px; background: #f9fafb; border-bottom: 1px solid var(--line-2); }
@@ -1980,6 +1986,7 @@ let rulesCreated = false;
 let rules = [];                 // [{ conditions:[{category, criteria, amount, unit}], assign }] in rank order
 let rulesTab = 'hierarchy';     // 'hierarchy' | 'autoassign'
 let gates = [{ category:'Industry', industries:['Federal'] }];  // category+criteria that ALWAYS force manual review
+let autoThreshold = 50;          // # of data points before a category/criteria graduates to autoassign
 const ADMIN_PW = 'rebar';
 const exceptionRow = `<div class="rt-exception"><b>Exception</b> · Doesn't fit the rules cleanly → Bid coordinator manually assigns the bid.</div>`;
 
@@ -2098,7 +2105,11 @@ function renderAutoassignTab(){
       <div class="ga-policy-h">How a job routes by default</div>
       <ul>
         <li><b>All matching rules agree</b> on one estimator → autoassign.</li>
-        <li><b>Rules disagree</b> → recommend the top-ranked estimator; the coordinator confirms or overrides.</li>
+        <li><b>Rules disagree</b> → recommend the top-ranked estimator; the coordinator confirms or overrides.
+          <ul class="ga-policy-sub">
+            <li>After <input type="number" min="1" class="ga-thresh" value="${autoThreshold}" aria-label="data points before autoassign"> data points, autoassign categories &amp; criteria where recommendations are accepted <b>≥ 95%</b> of the time by both bid coordinator &amp; estimator.</li>
+          </ul>
+        </li>
         <li><b>Matches a gate below</b> → always manual review, regardless of the rules.</li>
       </ul>
     </div>
@@ -2209,6 +2220,7 @@ const rulesWrap = document.getElementById('rulesWrap');
 rulesWrap.addEventListener('input', e => {
   const t = e.target;
   if (t.classList.contains('rt-valnum') || t.classList.contains('rt-urg-num')) condFor(t).amount = t.value;
+  else if (t.classList.contains('ga-thresh')) autoThreshold = t.value;
 });
 rulesWrap.addEventListener('change', e => {
   const t = e.target;
