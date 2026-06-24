@@ -218,11 +218,13 @@
   }
   .t-rule .rk { width: 14px; height: 14px; flex: 0 0 auto; }
   .t-rule.pick { color: var(--ink); font-weight: 600; }
-  .t-rule .tag {
-    margin-left: auto; font-size: 10px; font-weight: 700; letter-spacing: .03em;
-    color: var(--warn); background: var(--warn-bg); border: 1px solid var(--warn-br);
-    padding: 1px 6px; border-radius: 999px;
+  .t-rank {
+    margin-left: auto; font-size: 10px; font-weight: 700; letter-spacing: .02em;
+    color: var(--ink-3); background: #f2f4f7; border: 1px solid var(--line);
+    padding: 1px 7px; border-radius: 999px; white-space: nowrap;
   }
+  .t-rank.pick { color: #fff; background: var(--navy); border-color: var(--navy); }
+  .t-rank.gate { color: var(--danger); background: var(--danger-bg); border-color: var(--danger-br); }
 
   .t-actions { display: flex; gap: 8px; padding: 8px 14px 12px; }
   .btn {
@@ -706,6 +708,28 @@
   .rt-asg { width: 100%; cursor: pointer; }
   .rt-rank-row .rt-actions { flex: 0 0 auto; padding: 0; }
 
+  /* structured criteria controls (chips, comparator, static gates) */
+  .rt-cond { align-items: flex-start; }
+  .rt-cond .rt-catsel { margin-top: 1px; }
+  .rt-chips { flex: 1 1 auto; min-width: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .rt-chip {
+    height: 30px; padding: 0 11px; border-radius: 999px; border: 1px solid var(--line);
+    background: #fff; color: var(--ink-2); font-family: inherit; font-size: 12.5px; font-weight: 600;
+    cursor: pointer; transition: background .12s, border-color .12s, color .12s; }
+  .rt-chip:hover { background: #f7f8fb; }
+  .rt-chip.on { background: rgba(53,54,229,.08); border-color: var(--blue); color: var(--blue); }
+  .rt-eqwrap { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
+  .rt-eqwrap .rt-chips { flex: 0 0 auto; }
+  .rt-only { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-2); cursor: pointer; user-select: none; }
+  .rt-only input { width: 15px; height: 15px; accent-color: var(--blue); cursor: pointer; }
+  .rt-static { flex: 1 1 auto; height: 34px; display: flex; align-items: center; font-size: 13px; color: var(--ink-3); font-style: italic; }
+  .rt-valbox { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 8px; }
+  .rt-valop { flex: 0 0 128px; width: 128px; cursor: pointer; }
+  .rt-dollar { color: var(--ink-3); font-size: 14px; margin-left: 2px; }
+  .rt-valnum { flex: 0 0 140px; width: 140px; }
+  .rt-valop, .rt-valnum { height: 34px; border: 1px solid var(--line); border-radius: 8px; padding: 0 9px; font-family: inherit; font-size: 13px; color: var(--ink); background: #fff; box-sizing: border-box; }
+  .rt-valop:focus, .rt-valnum:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(53,54,229,.12); }
+
   .rt-head2 { display: flex; gap: 12px; padding: 11px 12px; background: #f9fafb; border-bottom: 1px solid var(--line-2); }
   .rt-head2 div { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #98a2b3; }
   .hh-rank { flex: 0 0 40px; }
@@ -1067,11 +1091,11 @@ const BIDS = [
     type:'Hospital · Spiral duct', value:420000, location:'Houston, TX', dueInDays:3,
     outcome:'recommend',
     person:{ role:'Suggested estimator', who:'Dana Brooks · Healthcare', initials:'DB' },
-    why:'Three routing rules apply. Suggesting Healthcare under the documented safety-first priority — a human confirms the call.',
+    why:'Three routing rules apply. The best-ranked rule has been recommended — confirm before assigning.',
     rules:[
-      { txt:'Hospital → Healthcare specialist', pick:true },
-      { txt:'Value > $250k → Senior estimator' },
-      { txt:'Spiral duct → Mark Reyes' },
+      { txt:'Hospital → Healthcare specialist', rank:4, pick:true },
+      { txt:'Value > $250k → Senior estimator', rank:5 },
+      { txt:'Spiral duct → Mark Reyes', rank:6 },
     ],
   },
   {
@@ -1081,7 +1105,7 @@ const BIDS = [
     person:{ role:'Assigned estimator', who:'Bob Tran', initials:'BT' },
     why:'One rule matched cleanly and every field extracted at high confidence, so this auto-assigned. Reassign anytime.',
     rules:[
-      { txt:'GRD-only under $25k → Bob Tran', pick:true },
+      { txt:'GRD-only under $25k → Bob Tran', rank:8, pick:true },
     ],
   },
   {
@@ -1089,10 +1113,10 @@ const BIDS = [
     type:'School · RTUs + fans + accessories', value:190000, location:'Fort Worth, TX', dueInDays:5,
     outcome:'recommend',
     person:{ role:'Suggested estimator', who:'Sarah Okafor · N. Texas', initials:'SO' },
-    why:'Two rules apply — the territory owner and the equipment-mix team disagree. Suggesting the territory owner; confirm the right desk.',
+    why:'Two routing rules apply. The best-ranked rule has been recommended — confirm before assigning.',
     rules:[
-      { txt:'School in North Texas → Sarah Okafor', pick:true },
-      { txt:'Fans + RTUs + accessories → Commercial Applied team' },
+      { txt:'School in North Texas → Sarah Okafor', rank:3, pick:true },
+      { txt:'Fans + RTUs + accessories → Commercial Applied team', rank:7 },
     ],
   },
   {
@@ -1100,12 +1124,11 @@ const BIDS = [
     type:'Laboratory · Spiral duct', value:310000, location:'Austin, TX', dueInDays:4,
     outcome:'recommend',
     person:{ role:'Suggested estimator', who:'Dana Brooks · Healthcare', initials:'DB' },
-    why:'Four rules apply at once. Suggesting Healthcare for the lab/life-safety scope; the contractor-account and duct rules are shown so the coordinator can override.',
+    why:'Three routing rules apply. The best-ranked rule has been recommended — confirm before assigning.',
     rules:[
-      { txt:'Laboratory → Healthcare specialist', pick:true },
-      { txt:'Value > $250k → Senior estimator' },
-      { txt:'Spiral duct → Mark Reyes' },
-      { txt:'Contractor X → Dallas team' },
+      { txt:'Laboratory → Healthcare specialist', rank:4, pick:true },
+      { txt:'Value > $250k → Senior estimator', rank:5 },
+      { txt:'Spiral duct → Mark Reyes', rank:6 },
     ],
   },
   {
@@ -1221,8 +1244,10 @@ function ruleRow(r){
   const icon = r.pick
     ? `<svg class="rk" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="${r.hard?'#fef3f2':'#fffaeb'}" stroke="${r.hard?'#fecdca':'#fedf89'}"/><path d="M8 12.5l2.5 2.5L16 9" stroke="${r.hard?'#b42318':'#b54708'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
     : `<svg class="rk" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.2" stroke="#cdd2de" stroke-width="1.6"/></svg>`;
-  const tag = (!r.pick) ? `<span class="tag">also matched</span>` : '';
-  return `<div class="t-rule ${r.pick?'pick':''}">${icon}<span>${r.txt}</span>${tag}</div>`;
+  const badge = r.rank
+    ? `<span class="t-rank ${r.pick?'pick':''}">Rank ${r.rank}</span>`
+    : (r.hard ? `<span class="t-rank gate">Hard gate</span>` : '');
+  return `<div class="t-rule ${r.pick?'pick':''}">${icon}<span>${r.txt}</span>${badge}</div>`;
 }
 
 function renderToast(swap){
@@ -1864,17 +1889,40 @@ document.getElementById('backDesk').onclick = closeApp;
 /* ---------- Bid Assignment Rules page (PRD idea #4) ---------- */
 const CATEGORIES = ['Addendum-only', 'Urgent', 'Design/build', 'Industry', 'Location', 'Bid value', 'Duct type', 'Equipment type'];
 
+/* Structured option lists — each category's criteria is a typed control, not
+   free text, so a rule can't be saved in a shape the engine can't evaluate.
+   The *_KW maps translate a chosen option to the substrings we test against
+   the AI-extracted job fields. */
+const INDUSTRY_OPTS = ['School', 'Hospital', 'Laboratory', 'Retail', 'Office', 'Federal', 'Industrial'];
+const INDUSTRY_KW   = { School:'school', Hospital:'hospital', Laboratory:'lab', Retail:'retail', Office:'office', Federal:'federal', Industrial:'industrial' };
+const LOCATION_OPTS = ['North Texas', 'Gulf Coast', 'Central Texas', 'South Texas', 'West Texas'];
+const LOCATION_KW   = {
+  'North Texas':  ['north texas', 'dallas', 'fort worth', 'arlington', 'plano'],
+  'Gulf Coast':   ['gulf', 'houston'],
+  'Central Texas':['central texas', 'austin'],
+  'South Texas':  ['south texas', 'san antonio'],
+  'West Texas':   ['west texas', 'el paso'],
+};
+const DUCT_OPTS  = ['Spiral', 'Rectangular', 'Round', 'Flat-oval', 'Fabric'];
+const EQUIP_OPTS = ['RTUs', 'AHUs', 'VAVs', 'Fans', 'Exhaust fans', 'MAUs', 'GRDs', 'Duct accessories'];
+const EQUIP_KW   = { RTUs:'rtu', AHUs:'ahu', VAVs:'vav', Fans:'fan', 'Exhaust fans':'exhaust fan', MAUs:'mau', GRDs:'grd', 'Duct accessories':'duct access' };
+const VALUE_OPS  = [['above','Above'], ['below','Below'], ['atleast','At least'], ['atmost','At most']];
+const OP_LABEL   = { above:'Above', below:'Below', atleast:'At least', atmost:'At most' };
+const CHIP_FIELD = { 'Industry':'industries', 'Location':'locations', 'Duct type':'ducts', 'Equipment type':'equipment' };
+const CHIP_OPTS  = { 'Industry':INDUSTRY_OPTS, 'Location':LOCATION_OPTS, 'Duct type':DUCT_OPTS, 'Equipment type':EQUIP_OPTS };
+const fmtMoney   = a => '$' + (Number(String(a).replace(/[,$]/g, '')) || 0).toLocaleString('en-US');
+
 /* Example hierarchy (the PRD rank table) — each rank is one or more conditions
-   that share a single assignment. */
+   that share a single assignment. Criteria are stored structured per category. */
 const RULE_EXAMPLE = [
-  { conditions:[{ category:'Addendum-only', criteria:'Addendum-only' }], assign:'__original' },
-  { conditions:[{ category:'Urgent', amount:'3', unit:'days' }, { category:'Design/build', criteria:'Design/build project' }], assign:'__versatile' },
-  { conditions:[{ category:'Industry', criteria:'School' }, { category:'Location', criteria:'North Texas' }], assign:'Sarah Okafor' },
-  { conditions:[{ category:'Industry', criteria:'Hospital or lab' }], assign:'Dana Brooks' },
-  { conditions:[{ category:'Bid value', criteria:'Above $250,000' }], assign:'Greg Olsen' },
-  { conditions:[{ category:'Duct type', criteria:'Spiral duct' }], assign:'Mark Reyes' },
-  { conditions:[{ category:'Equipment type', criteria:'Fans + RTUs + duct accessories' }], assign:'Tom Walsh' },
-  { conditions:[{ category:'Equipment type', criteria:'GRD-only' }, { category:'Bid value', criteria:'Under $25,000' }], assign:'Bob Tran' },
+  { conditions:[{ category:'Addendum-only' }], assign:'__original' },
+  { conditions:[{ category:'Urgent', amount:'3', unit:'days' }, { category:'Design/build' }], assign:'__versatile' },
+  { conditions:[{ category:'Industry', industries:['School'] }, { category:'Location', locations:['North Texas'] }], assign:'Sarah Okafor' },
+  { conditions:[{ category:'Industry', industries:['Hospital', 'Laboratory'] }], assign:'Dana Brooks' },
+  { conditions:[{ category:'Bid value', op:'above', amount:'250000' }], assign:'Greg Olsen' },
+  { conditions:[{ category:'Duct type', ducts:['Spiral'] }], assign:'Mark Reyes' },
+  { conditions:[{ category:'Equipment type', equipment:['Fans', 'RTUs', 'Duct accessories'], only:false }], assign:'Tom Walsh' },
+  { conditions:[{ category:'Equipment type', equipment:['GRDs'], only:true }, { category:'Bid value', op:'below', amount:'25000' }], assign:'Bob Tran' },
 ];
 const ASSIGN_OPTIONS = [
   { value:'__original',    label:'Original estimator (if one exists)' },
@@ -1894,28 +1942,52 @@ const exceptionRow = `<div class="rt-exception"><b>Exception</b> · Doesn't fit 
 /* ---- routing engine: recommendation is computed live against the ACTIVE
    hierarchy (saved rules once created, PRD defaults until then). A rank matches
    a job only if ALL of its conditions match; the highest-ranked match wins. ---- */
-const condCriteria = c => c.category === 'Urgent'
-  ? `Deadline within ${c.amount || '?'} ${c.unit || 'days'}` : (c.criteria || '');
+/* human-readable label for a structured condition (used in view + routing copy) */
+function condCriteria(c){
+  switch (c.category){
+    case 'Addendum-only': return 'Addendum to an existing bid';
+    case 'Urgent':        return `Deadline within ${c.amount || '?'} ${c.unit || 'days'}`;
+    case 'Design/build':  return 'Design/build project';
+    case 'Industry':      return (c.industries || []).join(' or ') || '—';
+    case 'Location':      return (c.locations  || []).join(' or ') || '—';
+    case 'Bid value':     return (c.amount === '' || c.amount == null) ? '—' : `${OP_LABEL[c.op] || 'Above'} ${fmtMoney(c.amount)}`;
+    case 'Duct type':     return (c.ducts || []).join(' or ') || '—';
+    case 'Equipment type':return (((c.equipment || []).join(' + ')) || '—') + (c.only ? ' only' : '');
+  }
+  return c.criteria || '';
+}
+/* fresh condition with the right structured shape for its category */
+function newCondition(category){
+  switch (category){
+    case 'Urgent':        return { category, amount:'', unit:'days' };
+    case 'Industry':      return { category, industries:[] };
+    case 'Location':      return { category, locations:[] };
+    case 'Bid value':     return { category, op:'above', amount:'' };
+    case 'Duct type':     return { category, ducts:[] };
+    case 'Equipment type':return { category, equipment:[], only:false };
+    default:              return { category };   // Addendum-only / Design/build are static gates
+  }
+}
 function whoFor(assign){ const e = ESTIMATORS.find(x => x.name === assign); return e ? { name:e.name, initials:e.initials, role:e.role } : null; }
 function activeHierarchy(){ return rulesCreated ? rules : RULE_EXAMPLE; }
 function matchCondition(c, job, daysOut){
-  const crit = (c.criteria || '').toLowerCase();
   switch (c.category){
     case 'Addendum-only': return !!job.addendum;
     case 'Urgent': { const n = parseFloat(c.amount); if (!(n > 0)) return false;
       const days = c.unit === 'hours' ? n/24 : c.unit === 'minutes' ? n/1440 : n; return daysOut <= days; }
     case 'Design/build': return !!job.designBuild;
-    case 'Industry': { const opts = crit.split(/\bor\b|,|\+/).map(s => s.trim()).filter(Boolean);
-      const bt = (job.buildingType || '').toLowerCase(); return opts.some(o => bt.includes(o)); }
-    case 'Location': { const loc = `${job.branch || ''} ${job.location || ''}`.toLowerCase(); return crit ? loc.includes(crit) : false; }
-    case 'Bid value': { const m = crit.replace(/[,$]/g,'').match(/(above|over|under|below|less|greater)?\s*([\d.]+)/);
-      if (!m) return false; const thr = parseFloat(m[2]); const under = /under|below|less/.test(m[1] || '');
-      return under ? job.value < thr : job.value > thr; }
-    case 'Duct type': { const word = crit.replace('duct', '').trim(); return word ? (job.duct || '').toLowerCase().includes(word) : false; }
-    case 'Equipment type': { const eq = (job.equipment || '').toLowerCase();
-      if (/grd[\s-]*only/.test(crit)) return eq.includes('grd') && eq.includes('only');
-      const toks = crit.split('+').map(s => s.trim()).filter(Boolean);
-      return toks.length ? toks.every(t => eq.includes(t.split(' ')[0])) : false; }
+    case 'Industry': { const bt = (job.buildingType || '').toLowerCase(); const sel = c.industries || [];
+      return sel.length > 0 && sel.some(i => bt.includes(INDUSTRY_KW[i] || i.toLowerCase())); }
+    case 'Location': { const loc = `${job.branch || ''} ${job.location || ''}`.toLowerCase(); const sel = c.locations || [];
+      return sel.length > 0 && sel.some(l => (LOCATION_KW[l] || [l.toLowerCase()]).some(k => loc.includes(k))); }
+    case 'Bid value': { const thr = parseFloat(String(c.amount).replace(/[,$]/g,'')); if (!(thr >= 0)) return false;
+      const v = job.value; return c.op === 'below' ? v < thr : c.op === 'atleast' ? v >= thr : c.op === 'atmost' ? v <= thr : v > thr; }
+    case 'Duct type': { const d = (job.duct || '').toLowerCase(); const sel = c.ducts || [];
+      return sel.length > 0 && sel.some(x => d.includes(x.toLowerCase())); }
+    case 'Equipment type': { const eq = (job.equipment || '').toLowerCase(); const sel = c.equipment || [];
+      if (!sel.length) return false;
+      const all = sel.every(x => eq.includes(EQUIP_KW[x] || x.toLowerCase()));
+      return c.only ? (all && eq.includes('only')) : all; }
   }
   return false;
 }
@@ -1943,17 +2015,38 @@ function renderRules(){ rulesCreated ? renderRulesView() : renderRulesBuilder();
 
 const categoryOptionsHtml = sel => `<option value="">Select a category</option>` +
   CATEGORIES.map(c => `<option ${c===sel?'selected':''}>${c}</option>`).join('');
+function chipsHtml(ri, ci, opts, selected){
+  const sel = selected || [];
+  return `<div class="rt-chips">` + opts.map(o =>
+    `<button type="button" class="rt-chip ${sel.includes(o)?'on':''}" data-r="${ri}" data-c="${ci}" data-v="${o.replace(/"/g,'&quot;')}">${o}</button>`).join('') + `</div>`;
+}
 function criteriaFieldHtml(ri, ci, c){
-  if (c.category === 'Urgent')
-    return `<div class="rt-urgent">
-      <span class="rt-urg-lbl">Deadline within</span>
-      <input type="number" min="1" class="rt-urg-num" data-r="${ri}" data-c="${ci}" value="${c.amount || ''}" placeholder="#">
-      <select class="rt-urg-unit" data-r="${ri}" data-c="${ci}">
-        <option ${c.unit==='days'?'selected':''}>days</option>
-        <option ${c.unit==='hours'?'selected':''}>hours</option>
-        <option ${c.unit==='minutes'?'selected':''}>minutes</option>
-      </select></div>`;
-  return `<input type="text" class="rt-crit" data-r="${ri}" data-c="${ci}" value="${(c.criteria || '').replace(/"/g,'&quot;')}" placeholder="Criteria…">`;
+  switch (c.category){
+    case 'Addendum-only': return `<div class="rt-static">Addendum to an existing bid</div>`;
+    case 'Design/build':  return `<div class="rt-static">Design/build project</div>`;
+    case 'Urgent':
+      return `<div class="rt-urgent">
+        <span class="rt-urg-lbl">Deadline within</span>
+        <input type="number" min="1" class="rt-urg-num" data-r="${ri}" data-c="${ci}" value="${c.amount || ''}" placeholder="#">
+        <select class="rt-urg-unit" data-r="${ri}" data-c="${ci}">
+          <option ${c.unit==='days'?'selected':''}>days</option>
+          <option ${c.unit==='hours'?'selected':''}>hours</option>
+          <option ${c.unit==='minutes'?'selected':''}>minutes</option>
+        </select></div>`;
+    case 'Industry':  return chipsHtml(ri, ci, INDUSTRY_OPTS, c.industries);
+    case 'Location':  return chipsHtml(ri, ci, LOCATION_OPTS, c.locations);
+    case 'Duct type': return chipsHtml(ri, ci, DUCT_OPTS, c.ducts);
+    case 'Equipment type':
+      return `<div class="rt-eqwrap">${chipsHtml(ri, ci, EQUIP_OPTS, c.equipment)}` +
+        `<label class="rt-only"><input type="checkbox" class="rt-onlychk" data-r="${ri}" data-c="${ci}" ${c.only?'checked':''}> exclusively these (job lists “only”)</label></div>`;
+    case 'Bid value':
+      return `<div class="rt-valbox">
+        <select class="rt-valop" data-r="${ri}" data-c="${ci}">${VALUE_OPS.map(([v,l]) => `<option value="${v}" ${c.op===v?'selected':''}>${l}</option>`).join('')}</select>
+        <span class="rt-dollar">$</span>
+        <input type="number" min="0" step="1000" class="rt-valnum" data-r="${ri}" data-c="${ci}" value="${c.amount || ''}" placeholder="amount">
+      </div>`;
+  }
+  return '';
 }
 function renderRulesBuilder(){
   const ranks = rules.map((rank, ri) => {
@@ -2023,7 +2116,7 @@ function handleRowAction(act, i){
 const rulesWrap = document.getElementById('rulesWrap');
 rulesWrap.addEventListener('input', e => {
   const t = e.target;
-  if (t.classList.contains('rt-crit')) rules[+t.dataset.r].conditions[+t.dataset.c].criteria = t.value;
+  if (t.classList.contains('rt-valnum')) rules[+t.dataset.r].conditions[+t.dataset.c].amount = t.value;
   else if (t.classList.contains('rt-urg-num')) rules[+t.dataset.r].conditions[+t.dataset.c].amount = t.value;
 });
 rulesWrap.addEventListener('change', e => {
@@ -2032,17 +2125,27 @@ rulesWrap.addEventListener('change', e => {
     const r = +t.dataset.r, c = +t.dataset.c, rank = rules[r];
     if (c < rank.conditions.length){
       if (t.value === '') rank.conditions.splice(c, 1);                                  // deselect removes this condition
-      else rank.conditions[c] = t.value === 'Urgent' ? { category:'Urgent', amount:'', unit:'days' } : { category:t.value, criteria:'' };
+      else rank.conditions[c] = newCondition(t.value);
     } else if (t.value !== ''){                                                          // trailing dropdown -> add a condition
-      rank.conditions.push(t.value === 'Urgent' ? { category:'Urgent', amount:'', unit:'days' } : { category:t.value, criteria:'' });
+      rank.conditions.push(newCondition(t.value));
     }
     renderRules();
   }
   else if (t.classList.contains('rt-urg-unit')) rules[+t.dataset.r].conditions[+t.dataset.c].unit = t.value;
+  else if (t.classList.contains('rt-valop')) rules[+t.dataset.r].conditions[+t.dataset.c].op = t.value;
+  else if (t.classList.contains('rt-onlychk')) rules[+t.dataset.r].conditions[+t.dataset.c].only = t.checked;
   else if (t.classList.contains('rt-asg')) rules[+t.dataset.r].assign = t.value;
 });
 rulesWrap.addEventListener('click', e => {
   const btn = e.target.closest('button'); if (!btn) return;
+  if (btn.classList.contains('rt-chip')){                                                // toggle a multiselect chip in place
+    const cond = rules[+btn.dataset.r].conditions[+btn.dataset.c];
+    const f = CHIP_FIELD[cond.category]; if (!f) return;
+    const arr = cond[f] || (cond[f] = []);
+    const i = arr.indexOf(btn.dataset.v);
+    if (i >= 0) arr.splice(i, 1); else arr.push(btn.dataset.v);
+    renderRules(); return;
+  }
   if (btn.id === 'rulesBack') showPage('settings');
   else if (btn.id === 'addRank') { rules.push({ conditions:[], assign:'' }); renderRules(); }
   else if (btn.id === 'loadExample') { rules = RULE_EXAMPLE.map(r => ({ assign:r.assign, conditions:r.conditions.map(c => ({ ...c })) })); renderRules(); }
