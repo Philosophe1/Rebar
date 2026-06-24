@@ -398,6 +398,10 @@
   }
   .tab:hover { background: #f2f4f7; color: var(--ink-2); }
   .tab.active { background: #eef1ff; color: #2f3bd6; border-color: #dcdffb; }
+  .tab-count { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px;
+    padding: 0 5px; margin-left: 5px; border-radius: 999px; background: #e4e7ec; color: var(--ink-2);
+    font-size: 11px; font-weight: 700; vertical-align: middle; }
+  .tab.active .tab-count { background: #d8ddfb; color: #2f3bd6; }
   .tab-add { width: 34px; height: 34px; border-radius: 8px; border: 1px dashed var(--line); background: #fff; color: var(--ink-3);
              cursor: pointer; font-size: 18px; line-height: 1; }
   .tab-add:hover { background: #f7f8fb; color: var(--ink-2); }
@@ -433,6 +437,10 @@
   .c-due .due-sub { display: block; font-size: 11.5px; font-weight: 600; margin-top: 2px; color: var(--ink-3); }
   .c-due.urgent .due-sub { color: var(--danger); }
 
+  .c-est { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
+  .auto-pill { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 8px 0 7px; border-radius: 999px;
+    background: var(--ok-bg); color: var(--ok); border: 1px solid var(--ok-br); font-size: 11px; font-weight: 600; }
+  .auto-pill svg { display: block; }
   .chip { display: inline-flex; align-items: center; gap: 8px; }
   .chip .cav { width: 28px; height: 28px; border-radius: 50%; background: var(--navy); color: #fff;
                display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: 0 0 auto; }
@@ -629,8 +637,8 @@
 
       <div class="mn-toolbar">
         <div class="tabs">
-          <button class="tab active">Need to assign</button>
-          <button class="tab">Finished assigning</button>
+          <button class="tab active" id="tabNeed">Need to assign <span class="tab-count" id="cntNeed"></span></button>
+          <button class="tab" id="tabFinished">Finished assigning <span class="tab-count" id="cntFinished"></span></button>
           <button class="tab-add" title="Add view">+</button>
         </div>
         <div class="tb-right">
@@ -1069,7 +1077,7 @@ function renderNav(el, items){
 const TODOS = [
   { job:'26-0418', name:'Memorial West Expansion', sub:'Hospital · Spiral duct',
     contractor:'Adams Mechanical', location:'Houston, TX', value:420000, duct:'Spiral',
-    receiptOffset:-2, dueInDays:3, sales:{ name:'T. Nguyen', initials:'TN' },
+    receiptOffset:-2, dueInDays:3, status:'need', sales:{ name:'T. Nguyen', initials:'TN' },
     routing:{
       rec:'Healthcare specialist',
       rule:'When Industry = Hospital or Lab, Assignment = Healthcare specialist',
@@ -1079,7 +1087,7 @@ const TODOS = [
     } },
   { job:'26-0327', name:'Jefferson Labs Phase 2', sub:'Lab · Spiral duct',
     contractor:'Contractor X', location:'Austin, TX', value:310000, duct:'Spiral',
-    receiptOffset:-3, dueInDays:4, sales:{ name:'M. Alvarez', initials:'MA' },
+    receiptOffset:-3, dueInDays:4, status:'need', sales:{ name:'M. Alvarez', initials:'MA' },
     routing:{
       rec:'Healthcare specialist',
       rule:'When Industry = Hospital or Lab, Assignment = Healthcare specialist',
@@ -1089,7 +1097,7 @@ const TODOS = [
     } },
   { job:'26-0298', name:'Green Valley High School Renovation', sub:'School · North Texas',
     contractor:'Holt Construction', location:'Fort Worth, TX', value:190000, duct:'Rectangular',
-    receiptOffset:-6, dueInDays:5, sales:{ name:'J. Pierce', initials:'JP' },
+    receiptOffset:-6, dueInDays:5, status:'need', sales:{ name:'J. Pierce', initials:'JP' },
     routing:{
       rec:'Sarah',
       rule:'When Industry = School and Region = North Texas, Assignment = Sarah',
@@ -1099,7 +1107,7 @@ const TODOS = [
     } },
   { job:'26-0305', name:'Lakeside Retail Core & Shell', sub:'Retail · GRD-only',
     contractor:'Northstar Builders', location:'Dallas, TX', value:18000, duct:'Rectangular',
-    receiptOffset:-1, dueInDays:10, sales:{ name:'K. Webb', initials:'KW' },
+    receiptOffset:-1, dueInDays:10, status:'finished', assignedBy:'auto', sales:{ name:'K. Webb', initials:'KW' },
     routing:{
       rec:'Bob',
       rule:'When Equipment = GRD-only and Value < $25,000, Assignment = Bob',
@@ -1111,7 +1119,11 @@ const TODOS = [
 
 function renderTodos(){
   const today = simToday();
-  document.getElementById('tblBody').innerHTML = TODOS.map((t, i) => {
+  const rows = TODOS
+    .map((t, i) => ({ t, i }))
+    .filter(({ t }) => (t.status || 'need') === activeTab);
+
+  document.getElementById('tblBody').innerHTML = rows.map(({ t, i }) => {
     const receipt = addDays(REAL_TODAY, t.receiptOffset);
     const due     = addDays(REAL_TODAY, t.dueInDays);
     const daysOut = Math.round((startOfDay(due) - today) / DAY);
@@ -1123,26 +1135,48 @@ function renderTodos(){
     const urgentPill = urgent
       ? `<span class="urgent-pill"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M12 8v5l3 2" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="#fff" stroke-width="2"/></svg>Urgent</span>`
       : '';
-    // "Need to assign" tab: nothing is assigned yet, so Estimators is blank.
+    // "Need to assign": nothing assigned yet -> blank. "Finished assigning": show who it went to.
+    let est = '';
+    if (activeTab === 'finished' && t.routing.who){
+      const auto = t.assignedBy === 'auto'
+        ? `<span class="auto-pill"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4 4 10-10" stroke="#027a48" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Autoassigned</span>`
+        : '';
+      est = `<span class="chip"><span class="cav">${t.routing.who.initials}</span><span class="cnm">${t.routing.who.name}</span></span>${auto}`;
+    }
     return `
-      <div class="trow" data-i="${i}" title="View routing recommendation">
+      <div class="trow" data-i="${i}" title="View routing rationale">
         <div class="c-job">${t.job}</div>
         <div class="c-name"><div class="nm">${t.name}${urgentPill}</div><div class="sub">${t.sub}</div></div>
         <div class="c-date">${fmtMD(receipt)}</div>
         <div class="c-due ${urgent?'urgent':''}">${fmtMD(due)}<span class="due-sub">${dueSub}</span></div>
-        <div class="c-est"></div>
+        <div class="c-est">${est}</div>
         <div>${sales}</div>
       </div>`;
   }).join('');
+
+  document.getElementById('cntNeed').textContent     = TODOS.filter(t => (t.status || 'need') === 'need').length;
+  document.getElementById('cntFinished').textContent = TODOS.filter(t => t.status === 'finished').length;
+
   document.querySelectorAll('#tblBody .trow').forEach(row => {
     row.onclick = () => openJobModal(+row.dataset.i);
   });
 }
 
+let activeTab = 'need';
+function setTab(tab){
+  activeTab = tab;
+  document.getElementById('tabNeed').classList.toggle('active', tab === 'need');
+  document.getElementById('tabFinished').classList.toggle('active', tab === 'finished');
+  renderTodos();
+}
+document.getElementById('tabNeed').onclick     = () => setTab('need');
+document.getElementById('tabFinished').onclick = () => setTab('finished');
+
 /* ---- routing recommendation modal (per job) ---- */
 const jobModal = document.getElementById('jobModal');
 function openJobModal(i){
   const t = TODOS[i], r = t.routing;
+  const finished = t.status === 'finished';
   const due = addDays(REAL_TODAY, t.dueInDays);
   const daysOut = Math.round((startOfDay(due) - simToday()) / DAY);
   const urgent = daysOut <= 3;
@@ -1150,12 +1184,14 @@ function openJobModal(i){
                  : daysOut === 0 ? 'Due today' : `Due in ${daysOut} day${daysOut === 1 ? '' : 's'}`;
 
   document.getElementById('jmJob').textContent = `${t.name} · #${t.job}`;
-  document.getElementById('jmRec').innerHTML = `Recommended assignment: <b>${r.rec}</b>`;
+  document.getElementById('jmRec').innerHTML = finished
+    ? `Autoassigned: <b>${r.who ? r.who.name : r.rec}</b>`
+    : `Recommended assignment: <b>${r.rec}</b>`;
   document.getElementById('jmFacts').innerHTML =
     `${t.contractor} · ${t.location} · <b>${money(t.value)}</b> · ${t.duct} duct · ` +
     `<span class="${urgent ? 'due-em' : ''}">${dueLabel}</span>`;
   document.getElementById('jmRule').innerHTML = `<span class="lab">Rule:</span><b>${r.rule}</b>`;
-  document.getElementById('jmWho').innerHTML = r.who
+  document.getElementById('jmWho').innerHTML = (!finished && r.who)
     ? `<span class="cav">${r.who.initials}</span><span>Suggested estimator: <b>${r.who.name}</b></span>` : '';
   document.getElementById('jmEvi').innerHTML = (r.evidence || []).map(e => `<span class="evi">${e}</span>`).join('');
 
@@ -1168,9 +1204,16 @@ function openJobModal(i){
       `<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 4l9 16H3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 10v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>` +
       `Also matched — your call</div><ul>${r.also.map(a => `<li>${a}</li>`).join('')}</ul></div>`;
   } else {
+    const txt = finished
+      ? 'Autoassigned because every matching rule points to the same estimator — no conflicts to resolve.'
+      : 'Only one rule matched — no conflicts, high confidence.';
     extra.innerHTML =
-      `<div class="mb-note ok"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#027a48" stroke-width="1.8"/><path d="M8 12.5l2.5 2.5L16 9" stroke="#027a48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Only one rule matched — no conflicts, high confidence.</span></div>`;
+      `<div class="mb-note ok"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#027a48" stroke-width="1.8"/><path d="M8 12.5l2.5 2.5L16 9" stroke="#027a48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>${txt}</span></div>`;
   }
+
+  document.getElementById('jmConfirm').textContent  = finished ? 'Done' : 'Confirm assignment';
+  document.getElementById('jmOverride').textContent = finished ? 'Reassign…' : 'Override…';
+
   jobModal.classList.add('show');
 }
 function closeJobModal(){ jobModal.classList.remove('show'); }
@@ -1180,7 +1223,7 @@ document.getElementById('jmOverride').onclick = closeJobModal;
 jobModal.addEventListener('click', e => { if (e.target === jobModal) closeJobModal(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeJobModal(); });
 
-function openApp(){ renderTodos(); document.getElementById('appView').classList.add('show'); }
+function openApp(){ setTab('need'); document.getElementById('appView').classList.add('show'); }
 function closeApp(){ document.getElementById('appView').classList.remove('show'); }
 document.getElementById('backDesk').onclick = closeApp;
 
