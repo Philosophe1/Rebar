@@ -1093,9 +1093,9 @@ const BIDS = [
     person:{ role:'Suggested estimator', who:'Dana Brooks · Healthcare', initials:'DB' },
     why:'Three routing rules apply. The best-ranked rule has been recommended — confirm before assigning.',
     rules:[
-      { txt:'Hospital → Healthcare specialist', rank:4, pick:true },
-      { txt:'Value > $250k → Senior estimator', rank:5 },
-      { txt:'Spiral duct → Mark Reyes', rank:6 },
+      { txt:'Hospital → Healthcare specialist', rank:5, pick:true },
+      { txt:'Value > $250k → Senior estimator', rank:6 },
+      { txt:'Spiral duct → Mark Reyes', rank:7 },
     ],
   },
   {
@@ -1105,7 +1105,7 @@ const BIDS = [
     person:{ role:'Assigned estimator', who:'Bob Tran', initials:'BT' },
     why:'One rule matched cleanly and every field extracted at high confidence, so this auto-assigned. Reassign anytime.',
     rules:[
-      { txt:'GRD-only under $25k → Bob Tran', rank:8, pick:true },
+      { txt:'GRD-only under $25k → Bob Tran', rank:9, pick:true },
     ],
   },
   {
@@ -1115,20 +1115,21 @@ const BIDS = [
     person:{ role:'Suggested estimator', who:'Sarah Okafor · N. Texas', initials:'SO' },
     why:'Two routing rules apply. The best-ranked rule has been recommended — confirm before assigning.',
     rules:[
-      { txt:'School in North Texas → Sarah Okafor', rank:3, pick:true },
-      { txt:'Fans + RTUs + accessories → Commercial Applied team', rank:7 },
+      { txt:'School in North Texas → Sarah Okafor', rank:4, pick:true },
+      { txt:'Fans + RTUs + accessories → Commercial Applied team', rank:8 },
     ],
   },
   {
     id:'D', project:'Jefferson Labs Phase 2', contractor:'Contractor X',
     type:'Laboratory · Spiral duct', value:310000, location:'Austin, TX', dueInDays:4,
     outcome:'recommend',
-    person:{ role:'Suggested estimator', who:'Dana Brooks · Healthcare', initials:'DB' },
-    why:'Three routing rules apply. The best-ranked rule has been recommended — confirm before assigning.',
+    person:{ role:'Suggested assignment', who:'Dallas team · Contractor X account', initials:'DT' },
+    why:'Four routing rules apply. The best-ranked rule has been recommended — confirm before assigning.',
     rules:[
-      { txt:'Laboratory → Healthcare specialist', rank:4, pick:true },
-      { txt:'Value > $250k → Senior estimator', rank:5 },
-      { txt:'Spiral duct → Mark Reyes', rank:6 },
+      { txt:'Contractor X → Dallas team', rank:3, pick:true },
+      { txt:'Laboratory → Healthcare specialist', rank:5 },
+      { txt:'Value > $250k → Senior estimator', rank:6 },
+      { txt:'Spiral duct → Mark Reyes', rank:7 },
     ],
   },
   {
@@ -1511,8 +1512,8 @@ const TODOS = [
       subject:'Bid set — Jefferson Labs Phase 2',
       body:'Plan set attached for Jefferson Labs Phase 2 in Austin. Laboratory build-out, spiral duct; exhaust fans, MAUs, and GRDs. Estimated equipment value ~$310k. Due in 4 days. Thanks.' },
     receiptOffset:-3, dueInDays:4, status:'need', sales:{ name:'M. Alvarez', initials:'MA' },
-    matches:['Industry', 'Bid value', 'Duct type'],
-    evidence:['Building type: Lab', 'Value: $310,000'] },
+    matches:['Contractor', 'Industry', 'Bid value', 'Duct type'],
+    evidence:['Contractor: Contractor X', 'Building type: Lab', 'Value: $310,000'] },
   { job:'26-0298', name:'Green Valley High School Renovation', sub:'School · North Texas',
     contractor:'Holt Construction', location:'Fort Worth, TX', value:190000, duct:'Rectangular',
     buildingType:'School', equipment:'RTUs, fans, duct accessories', branch:'North Texas', existingEstimator:'None',
@@ -1887,7 +1888,7 @@ function closeApp(){ document.getElementById('appView').classList.remove('show')
 document.getElementById('backDesk').onclick = closeApp;
 
 /* ---------- Bid Assignment Rules page (PRD idea #4) ---------- */
-const CATEGORIES = ['Addendum-only', 'Urgent', 'Design/build', 'Industry', 'Location', 'Bid value', 'Duct type', 'Equipment type'];
+const CATEGORIES = ['Addendum-only', 'Urgent', 'Design/build', 'Contractor', 'Industry', 'Location', 'Bid value', 'Duct type', 'Equipment type'];
 
 /* Structured option lists — each category's criteria is a typed control, not
    free text, so a rule can't be saved in a shape the engine can't evaluate.
@@ -1908,8 +1909,9 @@ const EQUIP_OPTS = ['RTUs', 'AHUs', 'VAVs', 'Fans', 'Exhaust fans', 'MAUs', 'GRD
 const EQUIP_KW   = { RTUs:'rtu', AHUs:'ahu', VAVs:'vav', Fans:'fan', 'Exhaust fans':'exhaust fan', MAUs:'mau', GRDs:'grd', 'Duct accessories':'duct access' };
 const VALUE_OPS  = [['above','Above'], ['below','Below'], ['atleast','At least'], ['atmost','At most']];
 const OP_LABEL   = { above:'Above', below:'Below', atleast:'At least', atmost:'At most' };
-const CHIP_FIELD = { 'Industry':'industries', 'Location':'locations', 'Duct type':'ducts', 'Equipment type':'equipment' };
-const CHIP_OPTS  = { 'Industry':INDUSTRY_OPTS, 'Location':LOCATION_OPTS, 'Duct type':DUCT_OPTS, 'Equipment type':EQUIP_OPTS };
+const CONTRACTOR_OPTS = ['Contractor X', 'Adams Mechanical', 'Holt Construction', 'Beacon Construction', 'Northstar Builders'];
+const CHIP_FIELD = { 'Contractor':'contractors', 'Industry':'industries', 'Location':'locations', 'Duct type':'ducts', 'Equipment type':'equipment' };
+const CHIP_OPTS  = { 'Contractor':CONTRACTOR_OPTS, 'Industry':INDUSTRY_OPTS, 'Location':LOCATION_OPTS, 'Duct type':DUCT_OPTS, 'Equipment type':EQUIP_OPTS };
 const fmtMoney   = a => '$' + (Number(String(a).replace(/[,$]/g, '')) || 0).toLocaleString('en-US');
 
 /* Example hierarchy (the PRD rank table) — each rank is one or more conditions
@@ -1917,6 +1919,7 @@ const fmtMoney   = a => '$' + (Number(String(a).replace(/[,$]/g, '')) || 0).toLo
 const RULE_EXAMPLE = [
   { conditions:[{ category:'Addendum-only' }], assign:'__original' },
   { conditions:[{ category:'Urgent', amount:'3', unit:'days' }, { category:'Design/build' }], assign:'__versatile' },
+  { conditions:[{ category:'Contractor', contractors:['Contractor X'] }], assign:'__dallas' },
   { conditions:[{ category:'Industry', industries:['School'] }, { category:'Location', locations:['North Texas'] }], assign:'Sarah Okafor' },
   { conditions:[{ category:'Industry', industries:['Hospital', 'Laboratory'] }], assign:'Dana Brooks' },
   { conditions:[{ category:'Bid value', op:'above', amount:'250000' }], assign:'Greg Olsen' },
@@ -1927,6 +1930,7 @@ const RULE_EXAMPLE = [
 const ASSIGN_OPTIONS = [
   { value:'__original',    label:'Original estimator (if one exists)' },
   { value:'__versatile',   label:'All versatile estimators — first available' },
+  { value:'__dallas',      label:'Dallas team' },
   ...ESTIMATORS.map(e => ({ value:e.name, label:`${e.name} · ${e.role}` })),
   { value:'__coordinator', label:'Bid coordinator — manual review' },
 ];
@@ -1948,6 +1952,7 @@ function condCriteria(c){
     case 'Addendum-only': return 'Addendum to an existing bid';
     case 'Urgent':        return `Deadline within ${c.amount || '?'} ${c.unit || 'days'}`;
     case 'Design/build':  return 'Design/build project';
+    case 'Contractor':    return (c.contractors || []).join(' or ') || '—';
     case 'Industry':      return (c.industries || []).join(' or ') || '—';
     case 'Location':      return (c.locations  || []).join(' or ') || '—';
     case 'Bid value':     return (c.amount === '' || c.amount == null) ? '—' : `${OP_LABEL[c.op] || 'Above'} ${fmtMoney(c.amount)}`;
@@ -1960,6 +1965,7 @@ function condCriteria(c){
 function newCondition(category){
   switch (category){
     case 'Urgent':        return { category, amount:'', unit:'days' };
+    case 'Contractor':    return { category, contractors:[] };
     case 'Industry':      return { category, industries:[] };
     case 'Location':      return { category, locations:[] };
     case 'Bid value':     return { category, op:'above', amount:'' };
@@ -1976,6 +1982,8 @@ function matchCondition(c, job, daysOut){
     case 'Urgent': { const n = parseFloat(c.amount); if (!(n > 0)) return false;
       const days = c.unit === 'hours' ? n/24 : c.unit === 'minutes' ? n/1440 : n; return daysOut <= days; }
     case 'Design/build': return !!job.designBuild;
+    case 'Contractor': { const cn = (job.contractor || '').toLowerCase(); const sel = c.contractors || [];
+      return sel.length > 0 && sel.some(x => cn.includes(x.toLowerCase())); }
     case 'Industry': { const bt = (job.buildingType || '').toLowerCase(); const sel = c.industries || [];
       return sel.length > 0 && sel.some(i => bt.includes(INDUSTRY_KW[i] || i.toLowerCase())); }
     case 'Location': { const loc = `${job.branch || ''} ${job.location || ''}`.toLowerCase(); const sel = c.locations || [];
@@ -2033,6 +2041,7 @@ function criteriaFieldHtml(ri, ci, c){
           <option ${c.unit==='hours'?'selected':''}>hours</option>
           <option ${c.unit==='minutes'?'selected':''}>minutes</option>
         </select></div>`;
+    case 'Contractor':return chipsHtml(ri, ci, CONTRACTOR_OPTS, c.contractors);
     case 'Industry':  return chipsHtml(ri, ci, INDUSTRY_OPTS, c.industries);
     case 'Location':  return chipsHtml(ri, ci, LOCATION_OPTS, c.locations);
     case 'Duct type': return chipsHtml(ri, ci, DUCT_OPTS, c.ducts);
