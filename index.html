@@ -647,6 +647,61 @@
   .email-attach .fi { width: 32px; height: 38px; border-radius: 5px; background: #fee4e2; color: #b42318; display: grid; place-items: center; font-size: 9px; font-weight: 800; flex: 0 0 auto; }
   .email-attach .an { font-size: 13px; font-weight: 600; color: #101828; }
   .email-attach .asz { font-size: 12px; color: var(--ink-3); }
+
+  /* ============ Settings + Bid Assignment Rules pages ============ */
+  .page { display: none; flex: 1 1 auto; min-height: 0; flex-direction: column; }
+  .page.active { display: flex; }
+
+  .settings-wrap { flex: 1 1 auto; overflow: auto; padding: 16px 30px 30px; display: flex; flex-direction: column; gap: 13px; }
+  .set-card { display: flex; align-items: center; gap: 16px; padding: 17px 20px; border: 1px solid var(--line-2); border-radius: 14px; background: #f7f8fa; max-width: 880px; }
+  .set-card.clickable { cursor: pointer; }
+  .set-card.clickable:hover { background: #eef1f6; border-color: #d8dde6; }
+  .set-ic { width: 36px; height: 36px; flex: 0 0 auto; display: grid; place-items: center; color: var(--navy); }
+  .set-ic.danger { color: var(--danger); }
+  .set-tx { flex: 1; min-width: 0; }
+  .set-tx .st { font-size: 16px; font-weight: 700; color: #101828; }
+  .set-tx .ss { font-size: 13.5px; color: var(--ink-3); margin-top: 3px; }
+  .set-pill { font-size: 12.5px; font-weight: 600; padding: 5px 13px; border-radius: 999px; white-space: nowrap; flex: 0 0 auto; }
+  .set-pill.req { color: var(--danger); background: #fff; border: 1px solid var(--danger-br); }
+  .set-pill.email { color: var(--blue); background: #fff; border: 1px solid #dce1ff; }
+  .set-chev { color: var(--ink-3); flex: 0 0 auto; }
+
+  .rules-wrap { flex: 1 1 auto; overflow: auto; padding: 14px 30px 30px; }
+  .rules-back { background: none; border: none; color: var(--blue); font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; padding: 4px 0; display: inline-flex; align-items: center; gap: 5px; }
+  .rules-back:hover { text-decoration: underline; }
+  .rules-title-row { display: flex; align-items: flex-start; gap: 16px; margin: 8px 0 16px; }
+  .rules-h1 { font-size: 22px; font-weight: 700; color: #101828; }
+  .rules-sub { font-size: 13.5px; color: var(--ink-2); margin-top: 4px; max-width: 660px; line-height: 1.5; }
+  .rules-title-row .m-btn { margin-left: auto; flex: 0 0 auto; }
+  .add-cat { margin-bottom: 14px; }
+  .add-cat select { height: 40px; min-width: 230px; border: 1px solid var(--line); border-radius: 9px; padding: 0 12px; font-family: inherit; font-size: 13.5px; color: var(--blue); font-weight: 600; background: #fff; cursor: pointer; }
+
+  .rules-table { border: 1px solid var(--line-2); border-radius: 12px; overflow: hidden; max-width: 1000px; }
+  .rt-head, .rt-row { display: grid; align-items: center; }
+  .rules-table.view    .rt-head, .rules-table.view    .rt-row { grid-template-columns: 64px 220px 1fr 1.1fr; }
+  .rules-table.builder .rt-head, .rules-table.builder .rt-row { grid-template-columns: 64px 196px 1fr 1.1fr 96px; }
+  .rt-head { background: #f9fafb; border-bottom: 1px solid var(--line-2); }
+  .rt-head > div { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #98a2b3; padding: 11px 12px; }
+  .rt-row { border-bottom: 1px solid var(--line-2); }
+  .rt-row > div { padding: 11px 12px; font-size: 13.5px; color: #1d2939; }
+  .rt-rank span { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 7px; background: var(--navy); color: #fff; font-size: 12.5px; font-weight: 800; }
+  .rt-cat { font-weight: 600; color: #101828; }
+  .rt-input, .rt-select { width: 100%; height: 34px; border: 1px solid var(--line); border-radius: 8px; padding: 0 9px; font-family: inherit; font-size: 13px; color: var(--ink); background: #fff; box-sizing: border-box; }
+  .rt-input:focus, .rt-select:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(53,54,229,.12); }
+  .rt-actions { display: flex; gap: 3px; padding: 8px 6px; }
+  .rt-actions button { width: 26px; height: 26px; border: 1px solid var(--line); background: #fff; border-radius: 6px; cursor: pointer; color: var(--ink-2); font-size: 13px; display: grid; place-items: center; }
+  .rt-actions button:hover { background: #f2f4f7; }
+  .rt-actions button[data-act="remove"]:hover { background: var(--danger-bg); color: var(--danger); border-color: var(--danger-br); }
+  .rt-exception { padding: 12px 14px; background: #f9fafb; font-size: 13px; color: var(--ink-2); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .rt-exception b { color: #475467; font-weight: 700; }
+  .rules-empty { padding: 28px; text-align: center; color: var(--ink-3); font-size: 13.5px; }
+
+  .pw-input { width: 100%; height: 42px; border: 1px solid var(--line); border-radius: 10px; padding: 0 13px; font-family: inherit; font-size: 14px; color: var(--ink); box-sizing: border-box; }
+  .pw-input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(53,54,229,.12); }
+  .pw-err { display: none; font-size: 12.5px; color: var(--danger); margin-top: 8px; }
+  .pw-err.show { display: block; }
+  .pw-hint { font-size: 12px; color: var(--ink-3); margin-top: 9px; }
+  .pw-hint code { background: #f2f4f7; padding: 1px 6px; border-radius: 5px; color: var(--ink-2); }
 </style>
 </head>
 <body>
@@ -739,7 +794,7 @@
 
     <main class="mn">
       <header class="mn-head">
-        <h1>Bid Coordination</h1>
+        <h1 id="mnTitle">Bid Coordination</h1>
         <div class="mn-actions">
           <button class="ic-btn" title="Theme">
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4.2" stroke="#475467" stroke-width="1.7"/><path d="M12 3v2.4M12 18.6V21M4.5 12H2.1M21.9 12H19.5M5.6 5.6l1.7 1.7M16.7 16.7l1.7 1.7M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7" stroke="#475467" stroke-width="1.6" stroke-linecap="round"/></svg>
@@ -756,6 +811,7 @@
         </div>
       </header>
 
+      <div id="pageCoordination" class="page active">
       <div class="mn-toolbar">
         <div class="tabs">
           <button class="tab active" id="tabNeed">Need to assign <span class="tab-count" id="cntNeed"></span></button>
@@ -793,6 +849,15 @@
         </button>
         <span class="foot-hint">Rebar summarizes feedback across the team to improve the assignment rules.</span>
       </footer>
+      </div><!-- /#pageCoordination -->
+
+      <div id="pageSettings" class="page">
+        <div class="settings-wrap" id="settingsList"></div>
+      </div>
+
+      <div id="pageRules" class="page">
+        <div class="rules-wrap" id="rulesWrap"></div>
+      </div>
     </main>
 
     <button class="back-desk" id="backDesk">
@@ -836,6 +901,26 @@
           <div class="fb-actions">
             <button class="m-btn" id="fbCancel">Cancel</button>
             <button class="m-btn primary" id="fbSend">Send feedback</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin password (to edit the rule hierarchy) -->
+    <div class="modal-scrim" id="pwModal">
+      <div class="fb-card" role="dialog" aria-modal="true" aria-labelledby="pwTitle">
+        <div class="fb-head">
+          <div class="fb-title" id="pwTitle">Admin password required</div>
+          <button class="fb-x" id="pwClose" aria-label="Close">✕</button>
+        </div>
+        <div class="fb-body">
+          <p class="fb-sub">Editing the rule hierarchy changes how every bid is routed, so it requires manager / owner approval.</p>
+          <input type="password" class="pw-input" id="pwInput" placeholder="Enter admin password" autocomplete="off" />
+          <div class="pw-err" id="pwErr">Incorrect password — try again.</div>
+          <div class="pw-hint">Demo password: <code>rebar</code></div>
+          <div class="fb-actions">
+            <button class="m-btn" id="pwCancel">Cancel</button>
+            <button class="m-btn primary" id="pwUnlock">Unlock editing</button>
           </div>
         </div>
       </div>
@@ -1270,7 +1355,7 @@ const NAV_TOP = [
   { icon:'rocket',   label:'Rebar' },
   { icon:'home',     label:'My Dashboard' },
   { icon:'calendar', label:'Bid Board' },
-  { icon:'todos',    label:'Bid Coordination', sel:true },
+  { icon:'todos',    label:'Bid Coordination', sel:true, page:'coordination' },
   { icon:'inbox',    label:'Shared With Me' },
   { div:true },
   { icon:'people',   label:'Design Dashboard' },
@@ -1281,14 +1366,69 @@ const NAV_BOTTOM = [
   { div:true },
   { icon:'bars',   label:'Analytics' },
   { icon:'bolt',   label:'Product Updates', dot:true },
-  { icon:'gear',   label:'Account Settings', dot:true },
+  { icon:'gear',   label:'Account Settings', dot:true, page:'settings' },
 ];
 function renderNav(el, items){
   el.innerHTML = items.map(it =>
     it.div ? '<div class="sb-div"></div>'
-      : `<div class="nav-i ${it.sel?'sel':''}">${navIcon(it.icon)}<span>${it.label}</span>${it.dot?'<span class="reddot"></span>':''}</div>`
+      : `<div class="nav-i ${it.sel?'sel':''}"${it.page?` data-page="${it.page}"`:''} style="${it.page?'cursor:pointer':''}">${navIcon(it.icon)}<span>${it.label}</span>${it.dot?'<span class="reddot"></span>':''}</div>`
   ).join('');
 }
+document.querySelector('.sb').addEventListener('click', e => {
+  const item = e.target.closest('.nav-i[data-page]');
+  if (item) showPage(item.dataset.page);
+});
+
+/* ---------- app page routing (Bid Coordination / Settings / Rules) ---------- */
+function showPage(name){
+  const navName = (name === 'rules') ? 'settings' : name;
+  document.querySelectorAll('.mn .page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page' + name[0].toUpperCase() + name.slice(1)).classList.add('active');
+  document.getElementById('mnTitle').textContent =
+    (name === 'settings' || name === 'rules') ? 'Settings' : 'Bid Coordination';
+  document.querySelectorAll('.nav-i[data-page]').forEach(n => n.classList.toggle('sel', n.dataset.page === navName));
+  if (name === 'settings') renderSettings();
+  if (name === 'rules') renderRules();
+}
+
+/* ---------- Settings page ---------- */
+function settingsIcon(kind){
+  const g = inner => `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><g stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round">${inner}</g></svg>`;
+  const I = {
+    mfa:'<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5"/><circle cx="12" cy="16.2" r=".2" stroke-width="2.4"/>',
+    login:'<path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4"/><path d="M10 8l4 4-4 4M14 12H4"/>',
+    equip:'<path d="M14.5 6a3.5 3.5 0 0 0-4.6 4.4l-5.6 5.6 2.2 2.2 5.6-5.6A3.5 3.5 0 0 0 18 8.1l-2.3 2.3-1.8-1.8L16.2 6.3A3.5 3.5 0 0 0 14.5 6Z"/>',
+    chest:'<rect x="3.5" y="5" width="17" height="5" rx="1.5"/><path d="M5 10v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8M10 13.5h4"/>',
+    engineer:'<path d="M4 20V4"/><path d="M4 20h16"/><rect x="7" y="11" width="3" height="6"/><rect x="12.5" y="7" width="3" height="10"/>',
+    rules:'<path d="M4 6h3M4 12h3M4 18h3"/><path d="M10 6h10M10 12h10M10 18h10"/>',
+    appearance:'<circle cx="12" cy="12" r="8.5"/><circle cx="8.5" cy="10" r="1"/><circle cx="12" cy="8" r="1"/><circle cx="15.5" cy="10" r="1"/><path d="M12 20.5c-1.5 0-2-1-2-2s1-1.5 1-2.5-1-1.5-2.5-1.5"/>',
+  };
+  return g(I[kind] || '');
+}
+const SETTINGS = [
+  { ic:'mfa', danger:true, title:'MFA Preferences', sub:'Manage your multi-factor authentication preferences.', pill:{cls:'req', text:'Requires Action'} },
+  { ic:'login', title:'Login Preferences', sub:'Choose how you sign in to your account.', pill:{cls:'email', text:'Email'} },
+  { ic:'equip', title:'Equipment Preferences', sub:'Hide equipment and properties for all projects.' },
+  { ic:'chest', title:'Preset Tool Chests', sub:'Create and manage preset tool chests.' },
+  { ic:'engineer', title:'Engineer Assignments', sub:'Assign engineers to salespeople for analytics filtering.' },
+  { ic:'rules', title:'Bid Assignment Rules', sub:'Create and manage bid assignment rules.', page:'rules' },
+  { ic:'appearance', title:'Appearance', sub:'Customize the look and feel of the app.' },
+];
+function renderSettings(){
+  document.getElementById('settingsList').innerHTML = SETTINGS.map(s => {
+    const right = s.pill ? `<span class="set-pill ${s.pill.cls}">${s.pill.text}</span>`
+      : s.page ? `<svg class="set-chev" width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>` : '';
+    return `<div class="set-card ${s.page?'clickable':''}" ${s.page?`data-page="${s.page}"`:''}>
+      <span class="set-ic ${s.danger?'danger':''}">${settingsIcon(s.ic)}</span>
+      <span class="set-tx"><div class="st">${s.title}</div><div class="ss">${s.sub}</div></span>
+      ${right}
+    </div>`;
+  }).join('');
+}
+document.getElementById('settingsList').addEventListener('click', e => {
+  const card = e.target.closest('.set-card[data-page]');
+  if (card) showPage(card.dataset.page);
+});
 
 /* Bid-coordination queue for the "Need to assign" tab — the case-study
    sample jobs. Each carries the routing the rule engine produced, so the
@@ -1544,6 +1684,7 @@ document.getElementById('jmOverride').onclick = () => {      // "Override…" (n
 jobModal.addEventListener('click', e => { if (e.target === jobModal) closeJobModal(); });
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
+  if (pwModal.classList.contains('show'))    { closePw(); return; }
   if (emailModal.classList.contains('show')) { closeEmail(); openTemplate(detailIndex); return; }
   if (tmplModal.classList.contains('show'))  { closeTemplate(); openJobModal(detailIndex); return; }
   if (pickModal.classList.contains('show'))  { closePicker(); openJobModal(pickIndex); return; }
@@ -1706,9 +1847,140 @@ document.getElementById('emBack').onclick     = () => { closeEmail(); openTempla
 tmplModal.addEventListener('click',  e => { if (e.target === tmplModal)  { closeTemplate(); openJobModal(detailIndex); } });
 emailModal.addEventListener('click', e => { if (e.target === emailModal) { closeEmail(); openTemplate(detailIndex); } });
 
-function openApp(){ setTab('need'); document.getElementById('appView').classList.add('show'); }
+function openApp(){ showPage('coordination'); setTab('need'); document.getElementById('appView').classList.add('show'); }
 function closeApp(){ document.getElementById('appView').classList.remove('show'); }
 document.getElementById('backDesk').onclick = closeApp;
+
+/* ---------- Bid Assignment Rules page (PRD idea #4) ---------- */
+const RULE_CATALOG = [
+  { cat:'Addendum-only',                  criteria:'Addendum-only',                  assign:'__original' },
+  { cat:'Urgent + Design/build',          criteria:'Deadline within 3 days',         assign:'__versatile' },
+  { cat:'Industry + Location',            criteria:'School + North Texas',           assign:'Sarah Okafor' },
+  { cat:'Industry',                       criteria:'Hospital or lab',                assign:'Dana Brooks' },
+  { cat:'Bid value',                      criteria:'Above $250,000',                 assign:'Greg Olsen' },
+  { cat:'Duct type',                      criteria:'Spiral duct',                    assign:'Mark Reyes' },
+  { cat:'Equipment type',                 criteria:'Fans + RTUs + duct accessories', assign:'Tom Walsh' },
+  { cat:'Equipment type + Dollar amount', criteria:'GRD-only + under $25,000',       assign:'Bob Tran' },
+];
+const ASSIGN_OPTIONS = [
+  { value:'__original',    label:'Original estimator (if one exists)' },
+  { value:'__versatile',   label:'All versatile estimators — first available' },
+  ...ESTIMATORS.map(e => ({ value:e.name, label:`${e.name} · ${e.role}` })),
+  { value:'__coordinator', label:'Bid coordinator — manual review' },
+];
+const assignLabel = v => (ASSIGN_OPTIONS.find(o => o.value === v) || { label:v }).label;
+const assignOptionsHtml = sel => ASSIGN_OPTIONS.map(o => `<option value="${o.value}" ${o.value===sel?'selected':''}>${o.label}</option>`).join('');
+
+let rulesCreated = false;
+let rules = [];                 // [{ cat, criteria, assign }] in priority (rank) order
+const ADMIN_PW = 'rebar';
+const exceptionRow = `<div class="rt-exception"><b>Exception</b> · Doesn't fit the rules cleanly → Bid coordinator manually assigns the bid.</div>`;
+
+function renderRules(){ rulesCreated ? renderRulesView() : renderRulesBuilder(); }
+
+function renderRulesBuilder(){
+  const used = rules.map(r => r.cat);
+  const remaining = RULE_CATALOG.map((c, i) => used.includes(c.cat) ? '' : `<option value="${i}">${c.cat}</option>`).join('');
+  const rows = rules.map((r, i) => `
+    <div class="rt-row">
+      <div class="rt-rank"><span>${i+1}</span></div>
+      <div class="rt-cat">${r.cat}</div>
+      <div><input class="rt-input" data-i="${i}" value="${r.criteria.replace(/"/g,'&quot;')}" placeholder="Criteria…"></div>
+      <div><select class="rt-select" data-i="${i}">${assignOptionsHtml(r.assign)}</select></div>
+      <div class="rt-actions">
+        <button data-act="up" data-i="${i}" title="Move up" ${i===0?'disabled':''}>↑</button>
+        <button data-act="down" data-i="${i}" title="Move down" ${i===rules.length-1?'disabled':''}>↓</button>
+        <button data-act="remove" data-i="${i}" title="Remove">✕</button>
+      </div>
+    </div>`).join('');
+  const table = rules.length
+    ? `<div class="rules-table builder"><div class="rt-head"><div>Rank</div><div>Category</div><div>Criteria</div><div>Assignment</div><div></div></div>${rows}${exceptionRow}</div>`
+    : `<div class="rules-table builder"><div class="rules-empty">No categories yet — add one above to start your hierarchy.</div></div>`;
+  document.getElementById('rulesWrap').innerHTML = `
+    <button class="rules-back" id="rulesBack">← Settings</button>
+    <div class="rules-title-row">
+      <div>
+        <div class="rules-h1">Bid Assignment Rules</div>
+        <div class="rules-sub">No hierarchy yet. Add categories in priority order — the first is Rank 1, the next Rank 2, and so on. For each, set the criteria and the estimator it routes to.</div>
+      </div>
+      <button class="m-btn primary" id="rulesSave" ${rules.length?'':'disabled'}>Save hierarchy</button>
+    </div>
+    <div class="add-cat"><select id="addCatSel"><option value="">＋ Add category…</option>${remaining}</select></div>
+    ${table}`;
+}
+
+function renderRulesView(){
+  const rows = rules.map((r, i) => `
+    <div class="rt-row">
+      <div class="rt-rank"><span>${i+1}</span></div>
+      <div class="rt-cat">${r.cat}</div>
+      <div>${r.criteria}</div>
+      <div>${assignLabel(r.assign)}</div>
+    </div>`).join('');
+  document.getElementById('rulesWrap').innerHTML = `
+    <button class="rules-back" id="rulesBack">← Settings</button>
+    <div class="rules-title-row">
+      <div>
+        <div class="rules-h1">Bid Assignment Rules</div>
+        <div class="rules-sub">Your office's agreed rule hierarchy, applied top-down. Everyone can view; editing requires an admin password (manager / owner approval).</div>
+      </div>
+      <button class="m-btn" id="rulesEdit"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="margin-right:6px"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.8"/></svg>Edit</button>
+    </div>
+    <div class="rules-table view">
+      <div class="rt-head"><div>Rank</div><div>Category</div><div>Criteria</div><div>Assignment</div></div>
+      ${rows}${exceptionRow}
+    </div>`;
+}
+
+function addCategory(catIdx){
+  const c = RULE_CATALOG[catIdx];
+  if (c && !rules.some(r => r.cat === c.cat)) rules.push({ cat:c.cat, criteria:c.criteria, assign:c.assign });
+  renderRules();
+}
+function handleRowAction(act, i){
+  if (act === 'remove') rules.splice(i, 1);
+  else if (act === 'up' && i > 0) [rules[i-1], rules[i]] = [rules[i], rules[i-1]];
+  else if (act === 'down' && i < rules.length-1) [rules[i+1], rules[i]] = [rules[i], rules[i+1]];
+  renderRules();
+}
+
+const rulesWrap = document.getElementById('rulesWrap');
+rulesWrap.addEventListener('input', e => {
+  if (e.target.classList.contains('rt-input')) rules[+e.target.dataset.i].criteria = e.target.value;
+});
+rulesWrap.addEventListener('change', e => {
+  if (e.target.id === 'addCatSel' && e.target.value !== '') addCategory(+e.target.value);
+  else if (e.target.classList.contains('rt-select')) rules[+e.target.dataset.i].assign = e.target.value;
+});
+rulesWrap.addEventListener('click', e => {
+  const btn = e.target.closest('button'); if (!btn) return;
+  if (btn.id === 'rulesBack') showPage('settings');
+  else if (btn.id === 'rulesSave') { rulesCreated = true; renderRules(); showAppToast('Bid assignment rules saved.'); }
+  else if (btn.id === 'rulesEdit') openPwModal();
+  else if (btn.dataset.act) handleRowAction(btn.dataset.act, +btn.dataset.i);
+});
+
+/* admin password to unlock editing */
+const pwModal = document.getElementById('pwModal');
+function openPwModal(){
+  document.getElementById('pwInput').value = '';
+  document.getElementById('pwErr').classList.remove('show');
+  pwModal.classList.add('show');
+  setTimeout(() => document.getElementById('pwInput').focus(), 60);
+}
+function closePw(){ pwModal.classList.remove('show'); }
+function tryUnlock(){
+  if (document.getElementById('pwInput').value === ADMIN_PW){
+    closePw(); rulesCreated = false; renderRules(); showAppToast('Editing unlocked.');
+  } else {
+    document.getElementById('pwErr').classList.add('show');
+  }
+}
+document.getElementById('pwClose').onclick  = closePw;
+document.getElementById('pwCancel').onclick = closePw;
+document.getElementById('pwUnlock').onclick = tryUnlock;
+document.getElementById('pwInput').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
+pwModal.addEventListener('click', e => { if (e.target === pwModal) closePw(); });
 
 /* ---------- boot ---------- */
 renderNav(document.getElementById('sbNav'), NAV_TOP);
