@@ -474,7 +474,7 @@
   }
   .modal-scrim.show { display: flex; }
   .modal {
-    width: min(560px, 92vw); max-height: 86vh;
+    width: min(660px, 94vw); max-height: 86vh;
     background: #fff; border-radius: 16px; overflow: hidden; position: relative;
     display: flex; flex-direction: column;
     box-shadow: 0 32px 80px rgba(8,16,40,.45);
@@ -519,7 +519,7 @@
   .mb-evi:empty { display: none; }
   .evi { font-size: 12.5px; font-weight: 600; color: var(--navy); background: #eef1ff; border: 1px solid #dce1ff; border-radius: 999px; padding: 4px 11px; }
   .mb-note { font-size: 13.5px; line-height: 1.45; border-radius: 9px; padding: 11px 13px; }
-  .mb-note.danger { color: var(--danger); background: var(--danger-bg); border: 1px solid var(--danger-br); }
+  .mb-note.danger { color: var(--danger); background: var(--danger-bg); border: 1px solid var(--danger-br); display: flex; align-items: center; gap: 8px; }
   .mb-note.ok { color: var(--ok); background: var(--ok-bg); border: 1px solid var(--ok-br); display: flex; align-items: center; gap: 8px; }
   .mb-note.info { color: #2f3bd6; background: #eef1ff; border: 1px solid #dce1ff; display: flex; align-items: center; gap: 8px; }
   .mb-note svg { flex: 0 0 auto; }
@@ -534,10 +534,9 @@
   .mb-also li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--warn); flex: 0 0 auto; }
   .mb-also.resolved .h { color: var(--ink-3); }
   .mb-also.resolved li::before { background: var(--ink-3); }
-  .modal-actions { margin-top: auto; display: flex; gap: 10px; padding-top: 6px; }
-  .modal-actions .left { margin-right: auto; }
+  .modal-actions { margin-top: auto; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; padding-top: 8px; }
   .m-btn { height: 40px; border-radius: 9px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
-           padding: 0 18px; border: 1px solid var(--line); background: #fff; color: var(--ink); }
+           padding: 0 13px; border: 1px solid var(--line); background: #fff; color: var(--ink); white-space: nowrap; }
   .m-btn:hover { background: #f7f8fb; }
   .m-btn.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
   .m-btn.primary:hover { filter: brightness(1.06); }
@@ -808,7 +807,7 @@
           <div class="mb-evi" id="jmEvi"></div>
           <div id="jmExtra"></div>
           <div class="modal-actions">
-            <button class="m-btn left" id="jmDetails">See more details</button>
+            <button class="m-btn" id="jmDetails">See more details</button>
             <button class="m-btn" id="jmOverride">Override…</button>
             <button class="m-btn primary" id="jmConfirm">Confirm assignment</button>
           </div>
@@ -1311,7 +1310,7 @@ const TODOS = [
   { job:'26-0298', name:'Green Valley High School Renovation', sub:'School · North Texas',
     contractor:'Holt Construction', location:'Fort Worth, TX', value:190000, duct:'Rectangular',
     buildingType:'School', equipment:'RTUs, fans, duct accessories', branch:'North Texas', existingEstimator:'None',
-    inputsReady:false, flagged:{ field:'Building type', note:'Inferred as “School” from the drawing titles — low confidence. Confirm before assigning.' },
+    inputsReady:false, flagged:[{ field:'Building type', note:'Inferred as “School” from the drawing titles — low confidence. Confirm before assigning.' }],
     email:{ from:'Holt Construction', addr:'estimating@holtconstruction.com', received:'Jun 24, 2026 · 7:38 AM',
       subject:'Green Valley renovation — plans',
       body:'Drawings attached for the Green Valley renovation in Fort Worth. RTUs, fans, and duct accessories; rectangular duct. Estimated equipment value ~$190k. Due in 5 days.' },
@@ -1322,6 +1321,25 @@ const TODOS = [
       who:{ name:'Sarah Okafor', initials:'SO' },
       evidence:['Building type: School', 'Region: North Texas'],
       also:[ { rank:7, txt:'Fans + RTUs + duct accessories → Commercial applied team' } ],
+    } },
+  { job:'26-0451', name:'Crestwood Medical Pavilion', sub:'Building type unclear · Rectangular duct',
+    contractor:'Beacon Construction', location:'San Antonio, TX', value:280000, duct:'Rectangular',
+    buildingType:'Hospital (inferred)', equipment:'RTUs, exhaust fans (partial)', branch:'San Antonio', existingEstimator:'None',
+    inputsReady:false,
+    flagged:[
+      { field:'Building type', note:'Inferred as “Hospital” from a partial drawing set — low confidence; could be a medical office building. Confirm before assigning.' },
+      { field:'Equipment', note:'Equipment schedule pages were partially legible — the list may be incomplete.' },
+    ],
+    email:{ from:'Beacon Construction', addr:'estimating@beaconconstruction.com', received:'Jun 24, 2026 · 10:21 AM',
+      subject:'Bid — Crestwood Medical Pavilion (partial set)',
+      body:'Attaching what we have so far for the Crestwood Medical Pavilion in San Antonio. Heads up: the equipment schedule pages came through partially legible and the building program isn’t fully spelled out yet. Rectangular duct; approx. $280k equipment. Bid due in 6 days — full set to follow.' },
+    receiptOffset:0, dueInDays:6, status:'need', sales:{ name:'D. Park', initials:'DP' },
+    routing:{
+      rec:'Healthcare specialist', rank:4,
+      rule:'When Industry = Hospital or Lab, Assignment = Healthcare specialist',
+      who:{ name:'Dana Brooks', initials:'DB' },
+      evidence:['Building type: Hospital (inferred)', 'Value: $280,000'],
+      also:[ { rank:5, txt:'Value > $250,000 → Senior estimator' } ],
     } },
   { job:'26-0305', name:'Lakeside Retail Core & Shell', sub:'Retail · GRD-only',
     contractor:'Northstar Builders', location:'Dallas, TX', value:18000, duct:'Rectangular',
@@ -1422,6 +1440,9 @@ function okNote(txt){
 function infoNote(txt){
   return `<div class="mb-note info"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#2f3bd6" stroke-width="1.8"/><path d="M8 12.5l2.5 2.5L16 9" stroke="#2f3bd6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>${txt}</span></div>`;
 }
+function dangerNote(txt){
+  return `<div class="mb-note danger"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 4l9 16H3z" stroke="#b42318" stroke-width="1.9" stroke-linejoin="round"/><path d="M12 10v4" stroke="#b42318" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17" r="1.1" fill="#b42318"/></svg><span>${txt}</span></div>`;
+}
 function openJobModal(i){
   openJobIndex = i;
   const t = TODOS[i], r = t.routing;
@@ -1449,6 +1470,11 @@ function openJobModal(i){
 
   const extra = document.getElementById('jmExtra');
   let html = '';
+  if (!t.inputsReady){
+    const fl = (t.flagged || []).map(f => f.field).join(', ');
+    const n  = (t.flagged || []).length;
+    html += dangerNote(`${n} input${n === 1 ? '' : 's'} flagged${fl ? ` (${fl})` : ''} — review before assigning. This recommendation is tentative.`);
+  }
   if (finished){
     if (auto) html += okNote('Autoassigned because every matching rule points to the same estimator — no conflicts to resolve.');
     else if (t.override) html += infoNote(`Coordinator override — assigned ${assignee.name} in place of the Rank ${r.rank} recommendation (${r.who ? r.who.name : r.rec}).`);
@@ -1469,6 +1495,7 @@ function openJobModal(i){
 
   document.getElementById('jmConfirm').textContent  = finished ? 'Done' : 'Confirm assignment';
   document.getElementById('jmOverride').textContent = finished ? 'Reassign…' : 'Override…';
+  document.getElementById('jmDetails').textContent  = t.inputsReady ? 'See more details' : 'Review missing/unclear inputs';
 
   jobModal.classList.add('show');
 }
@@ -1594,17 +1621,17 @@ function openTemplate(i){
     ['Equipment', t.equipment], ['Duct type', t.duct], ['Est. equipment value', money(t.value)],
     ['Branch', t.branch], ['Bid due date', fmtMD(due)], ['Existing estimator', t.existingEstimator],
   ];
-  const flaggedField = t.flagged ? t.flagged.field : null;
+  const flaggedFields = (t.flagged || []).map(f => f.field);
   const ck = '<svg class="ck" width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4 4 10-10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const flagIcon = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 4l9 16H3z" stroke="#b42318" stroke-width="1.9" stroke-linejoin="round"/><path d="M12 10v4" stroke="#b42318" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17" r="1.1" fill="#b42318"/></svg>';
   let grid = fields.map(([k, v]) => {
-    const isFlag = k === flaggedField;
+    const isFlag = flaggedFields.includes(k);
     const val = isFlag
       ? `<div class="tval flag">${flagIcon}${v} — needs confirmation</div>`
       : `<div class="tval">${ck}${v}</div>`;
     return `<div class="tfield">${k}</div>${val}`;
   }).join('');
-  if (t.flagged) grid += `<div class="tflag-note">${flagIcon}<span>${t.flagged.note}</span></div>`;
+  (t.flagged || []).forEach(f => { grid += `<div class="tflag-note">${flagIcon}<span><b>${f.field}:</b> ${f.note}</span></div>`; });
   document.getElementById('tmplGrid').innerHTML = grid;
 
   document.getElementById('tmplSourceName').textContent = `${t.email.from} · ${t.email.addr}`;
