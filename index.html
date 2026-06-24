@@ -527,11 +527,10 @@
   .mb-facts b { color: var(--ink); font-weight: 600; }
   .mb-facts .due-em { color: var(--danger); font-weight: 700; }
   .mb-also { border-top: 1px solid var(--line-2); padding-top: 13px; }
-  .mb-also .h { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--warn);
-                margin-bottom: 9px; display: flex; align-items: center; gap: 7px; }
+  .mb-also .h { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #667085; margin-bottom: 9px; }
   .mb-also ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 7px; }
   .mb-also li { font-size: 13.5px; color: var(--ink-2); display: flex; align-items: center; gap: 9px; }
-  .mb-also li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--warn); flex: 0 0 auto; }
+  .mb-also li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #667085; flex: 0 0 auto; }
   .mb-also.resolved .h { color: var(--ink-3); }
   .mb-also.resolved li::before { background: var(--ink-3); }
   .modal-actions { margin-top: auto; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; padding-top: 8px; }
@@ -580,7 +579,7 @@
   .pick-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 18px 20px 12px; }
   .pick-title { font-size: 18px; font-weight: 700; color: #101828; }
   .pick-sub { font-size: 12.5px; color: var(--ink-3); margin-top: 3px; }
-  .pick-list { padding: 2px 14px; overflow: auto; display: flex; flex-direction: column; gap: 6px; }
+  .pick-list { padding: 2px 14px; overflow: auto; display: flex; flex-direction: column; gap: 6px; flex: 1 1 auto; min-height: 0; }
   .pick-opt { display: flex; align-items: center; gap: 11px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
   .pick-opt:hover { background: #f7f8fb; }
   .pick-opt input { position: absolute; opacity: 0; pointer-events: none; }
@@ -596,6 +595,15 @@
   .pick-opt:has(input:checked) { border-color: var(--blue); background: #f5f6ff; }
   .pick-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 20px 18px; }
   .m-btn:disabled { opacity: .5; cursor: not-allowed; }
+  .pick-reason { display: none; padding: 4px 20px 0; border-top: 1px solid var(--line-2); margin-top: 6px; }
+  .pick-reason.show { display: block; }
+  .pr-label { font-size: 12.5px; font-weight: 600; color: var(--ink-2); margin: 11px 0 7px; display: flex; align-items: center; gap: 8px; }
+  .pr-req { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--danger); background: var(--danger-bg); border: 1px solid var(--danger-br); padding: 1px 7px; border-radius: 999px; }
+  .pr-select { width: 100%; height: 38px; border: 1px solid var(--line); border-radius: 9px; padding: 0 11px; font-family: inherit; font-size: 13.5px; color: var(--ink); background: #fff; cursor: pointer; }
+  .pr-select:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(53,54,229,.12); }
+  .pr-text { width: 100%; min-height: 52px; margin-top: 8px; resize: vertical; border: 1px solid var(--line); border-radius: 9px; padding: 9px 11px; font-family: inherit; font-size: 13.5px; color: var(--ink); box-sizing: border-box; }
+  .pr-text:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(53,54,229,.12); }
+  .pr-text::placeholder { color: #98a2b3; }
 
   /* ---- populated template + source email (See more details) ---- */
   .tmpl-card, .email-card { width: min(560px, 92vw); max-height: 86vh; display: flex; flex-direction: column; background: #fff;
@@ -847,6 +855,16 @@
           <button class="fb-x" id="pickClose" aria-label="Close">✕</button>
         </div>
         <div class="pick-list" id="pickList"></div>
+        <div class="pick-reason" id="pickReason">
+          <div class="pr-label">Reason for override <span class="pr-req">Required</span></div>
+          <select class="pr-select" id="pickReasonSel">
+            <option value="">Select a reason…</option>
+            <option>Inputs extracted incorrectly - please specify</option>
+            <option>Exception to rule hierarchy - please specify</option>
+            <option>Other - please specify</option>
+          </select>
+          <textarea class="pr-text" id="pickReasonText" placeholder="Please specify…"></textarea>
+        </div>
         <div class="pick-actions">
           <button class="m-btn" id="pickCancel">Cancel</button>
           <button class="m-btn primary" id="pickAssign">Assign</button>
@@ -1477,7 +1495,14 @@ function openJobModal(i){
   }
   if (finished){
     if (auto) html += okNote('Autoassigned because every matching rule points to the same estimator — no conflicts to resolve.');
-    else if (t.override) html += infoNote(`Coordinator override — assigned ${assignee.name} in place of the Rank ${r.rank} recommendation (${r.who ? r.who.name : r.rec}).`);
+    else if (t.override){
+      let txt = `Coordinator override — assigned ${assignee.name} in place of the Rank ${r.rank} recommendation (${r.who ? r.who.name : r.rec}).`;
+      if (t.overrideReason){
+        const reason = t.overrideReason.replace(/\s*-\s*please specify$/i, '');
+        txt += ` Reason: ${reason}${t.overrideReasonText ? ' — ' + t.overrideReasonText.replace(/[.\s]+$/, '') : ''}.`;
+      }
+      html += infoNote(txt);
+    }
     else html += infoNote('Assigned by the bid coordinator — recommendation accepted.');
   }
   if (r.hardGate){
@@ -1485,9 +1510,7 @@ function openJobModal(i){
   } else if (r.also && r.also.length){
     const header = finished ? 'Other rules that matched' : 'Also matched — your call';
     const items  = r.also.map(a => `<li><span class="rank sm">Rank ${a.rank}</span>${a.txt}</li>`).join('');
-    html += `<div class="mb-also${finished ? ' resolved' : ''}"><div class="h">` +
-      `<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 4l9 16H3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 10v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>` +
-      `${header}</div><ul>${items}</ul></div>`;
+    html += `<div class="mb-also${finished ? ' resolved' : ''}"><div class="h">${header}</div><ul>${items}</ul></div>`;
   } else if (!finished){
     html += okNote('Only one rule matched — no conflicts, high confidence.');
   }
@@ -1569,26 +1592,40 @@ function openPicker(i){
       <span class="pick-radio"></span>
     </label>`;
   }).join('');
+  document.getElementById('pickReasonSel').value = '';
+  document.getElementById('pickReasonText').value = '';
   updatePickBtn();
   pickModal.classList.add('show');
 }
 function updatePickBtn(){
   const sel = document.querySelector('input[name="pickEst"]:checked');
   const btn = document.getElementById('pickAssign');
-  if (sel){ btn.disabled = false; btn.textContent = `Assign to ${ESTIMATORS[+sel.value].name}`; }
-  else { btn.disabled = true; btn.textContent = 'Assign'; }
+  const reasonWrap = document.getElementById('pickReason');
+  const reasonSel  = document.getElementById('pickReasonSel');
+  if (!sel){ btn.disabled = true; btn.textContent = 'Assign'; reasonWrap.classList.remove('show'); return; }
+  const chosen = ESTIMATORS[+sel.value];
+  const recWho = TODOS[pickIndex].routing.who;
+  const isOverride = !(recWho && chosen.name === recWho.name);    // chose someone other than the recommendation
+  reasonWrap.classList.toggle('show', isOverride);
+  btn.textContent = `Assign to ${chosen.name}`;
+  btn.disabled = isOverride && !reasonSel.value;                  // override needs a reason code
 }
 function closePicker(){ pickModal.classList.remove('show'); }
 document.getElementById('pickList').addEventListener('change', updatePickBtn);
+document.getElementById('pickReasonSel').addEventListener('change', updatePickBtn);
 document.getElementById('pickAssign').onclick = () => {
   const sel = document.querySelector('input[name="pickEst"]:checked');
   if (!sel) return;
   const chosen = ESTIMATORS[+sel.value];
   const t = TODOS[pickIndex];
   const wasNeed = t.status === 'need';
+  const isOverride = !(t.routing.who && chosen.name === t.routing.who.name);
+  if (isOverride && !document.getElementById('pickReasonSel').value) return;   // guard
   t.assignedTo = { name: chosen.name, initials: chosen.initials, role: chosen.role };
   t.assignedBy = 'coordinator';
-  t.override   = !(t.routing.who && chosen.name === t.routing.who.name);
+  t.override   = isOverride;
+  t.overrideReason     = isOverride ? document.getElementById('pickReasonSel').value : null;
+  t.overrideReasonText = isOverride ? document.getElementById('pickReasonText').value.trim() : '';
   t.status     = 'finished';
   closePicker(); renderTodos();
   showAppToast(wasNeed
