@@ -1630,7 +1630,7 @@ function renderTodos(){
   const today = simToday();
   const rows = TODOS
     .map((t, i) => ({ t, i }))
-    .filter(({ t }) => (t.status || 'need') === activeTab);
+    .filter(({ t }) => boardState(t).tab === activeTab);
 
   document.getElementById('tblBody').innerHTML = rows.map(({ t, i }) => {
     const due     = addDays(REAL_TODAY, t.dueInDays);
@@ -1645,16 +1645,16 @@ function renderTodos(){
       : '';
     // "Need to assign": nothing assigned yet -> blank. "Finished assigning": show who it went to + how.
     let est = '';
-    const who = t.assignedTo || computeRouting(t).who;
-    if (activeTab === 'finished' && who){
+    const bs = boardState(t);
+    if (bs.tab === 'finished' && bs.who){
       let pill;
-      if (t.assignedBy === 'auto')
+      if (bs.auto)
         pill = `<span class="auto-pill"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4 4 10-10" stroke="#027a48" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Autoassigned</span>`;
-      else if (t.override)
+      else if (bs.override)
         pill = `<span class="override-pill"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M4 12h11M11 8l4 4-4 4M14 5h5v14" stroke="#b54708" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Override</span>`;
       else
         pill = `<span class="assigned-pill"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4 4 10-10" stroke="#2f3bd6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Assigned</span>`;
-      est = `<span class="chip"><span class="cav">${who.initials}</span><span class="cnm">${who.name}</span></span>${pill}`;
+      est = `<span class="chip"><span class="cav">${bs.who.initials}</span><span class="cnm">${bs.who.name}</span></span>${pill}`;
     }
     return `
       <div class="trow" data-i="${i}" title="View routing rationale">
@@ -1668,8 +1668,8 @@ function renderTodos(){
       </div>`;
   }).join('');
 
-  document.getElementById('cntNeed').textContent     = TODOS.filter(t => (t.status || 'need') === 'need').length;
-  document.getElementById('cntFinished').textContent = TODOS.filter(t => t.status === 'finished').length;
+  document.getElementById('cntNeed').textContent     = TODOS.filter(t => boardState(t).tab === 'need').length;
+  document.getElementById('cntFinished').textContent = TODOS.filter(t => boardState(t).tab === 'finished').length;
 
   document.querySelectorAll('#tblBody .trow').forEach(row => {
     row.onclick = () => openJobModal(+row.dataset.i);
@@ -1704,15 +1704,16 @@ function warnNote(txt){
 function openJobModal(i){
   openJobIndex = i;
   const t = TODOS[i], r = computeRouting(t);
-  const finished = t.status === 'finished';
-  const auto = t.assignedBy === 'auto';
+  const bs = boardState(t);
+  const finished = bs.tab === 'finished';      // includes jobs the engine autoassigns live
+  const auto = bs.auto;
   const due = addDays(REAL_TODAY, t.dueInDays);
   const daysOut = Math.round((startOfDay(due) - simToday()) / DAY);
   const urgent = daysOut <= 3;
   const dueLabel = daysOut < 0 ? `Overdue ${Math.abs(daysOut)}d`
                  : daysOut === 0 ? 'Due today' : `Due in ${daysOut} day${daysOut === 1 ? '' : 's'}`;
 
-  const assignee = finished ? (t.assignedTo || r.who) : null;
+  const assignee = finished ? bs.who : null;
   document.getElementById('jmJob').textContent = `${t.name} · #${t.job}`;
   document.getElementById('jmRec').innerHTML = finished
     ? `${auto ? 'Autoassigned' : 'Assigned'}: <b>${assignee ? assignee.name : r.rec}</b>`
@@ -1734,7 +1735,7 @@ function openJobModal(i){
     html += dangerNote(`${n} input${n === 1 ? '' : 's'} flagged${fl ? ` (${fl})` : ''} — review before assigning. This recommendation is tentative.`);
   }
   if (finished){
-    if (auto) html += okNote('Autoassigned because every matching rule points to the same estimator — no conflicts to resolve.');
+    if (auto) html += okNote(r.autoReason || 'Autoassigned — every matching rule agrees, so there is no conflict to resolve.');
     else if (t.override){
       let txt = `Coordinator override — assigned ${assignee.name} in place of the Rank ${r.rank} recommendation (${r.who ? r.who.name : r.rec}).`;
       if (t.overrideReason){
@@ -1769,7 +1770,7 @@ function closeJobModal(){ jobModal.classList.remove('show'); }
 document.getElementById('jmClose').onclick = closeJobModal;
 document.getElementById('jmConfirm').onclick = () => {       // "Confirm assignment" (need) / "Done" (finished)
   const t = TODOS[openJobIndex];
-  if (t && t.status !== 'finished'){
+  if (t && boardState(t).tab === 'need'){
     const cr = computeRouting(t);
     t.assignedTo = cr.who ? { name:cr.who.name, initials:cr.who.initials, role:cr.who.role }
                           : { name:cr.rec, initials:initialsOf(cr.rec), role:'' };
@@ -1988,13 +1989,13 @@ const fmtMoney   = a => '$' + (Number(String(a).replace(/[,$]/g, '')) || 0).toLo
 const RULE_EXAMPLE = [
   { conditions:[{ category:'Addendum-only' }], assign:'__original' },
   { conditions:[{ category:'Urgent', amount:'3', unit:'days' }, { category:'Design/build' }], assign:'__versatile' },
-  { conditions:[{ category:'Contractor', contractors:['Contractor X'] }], assign:'__dallas' },
-  { conditions:[{ category:'Industry', industries:['School'] }, { category:'Location', locations:['North Texas'] }], assign:'Sarah Okafor' },
-  { conditions:[{ category:'Industry', industries:['Hospital', 'Laboratory'] }], assign:'Dana Brooks' },
-  { conditions:[{ category:'Bid value', op:'above', amount:'250000' }], assign:'Greg Olsen' },
-  { conditions:[{ category:'Duct type', ducts:['Spiral'] }], assign:'Mark Reyes' },
+  { conditions:[{ category:'Contractor', contractors:['Contractor X'] }], assign:'__dallas', key:'contractorX' },
+  { conditions:[{ category:'Industry', industries:['School'] }, { category:'Location', locations:['North Texas'] }], assign:'Sarah Okafor', key:'schoolNT' },
+  { conditions:[{ category:'Industry', industries:['Hospital', 'Laboratory'] }], assign:'Dana Brooks', key:'hospitalLab' },
+  { conditions:[{ category:'Bid value', op:'above', amount:'250000' }], assign:'Greg Olsen', key:'value250' },
+  { conditions:[{ category:'Duct type', ducts:['Spiral'] }], assign:'Mark Reyes', key:'spiral' },
   { conditions:[{ category:'Equipment type', equipment:['Fans', 'RTUs', 'Duct accessories'], only:false }], assign:'Tom Walsh' },
-  { conditions:[{ category:'Equipment type', equipment:['GRDs'], only:true }, { category:'Bid value', op:'below', amount:'25000' }], assign:'Bob Tran' },
+  { conditions:[{ category:'Equipment type', equipment:['GRDs'], only:true }, { category:'Bid value', op:'below', amount:'25000' }], assign:'Bob Tran', key:'grdSmall' },
 ];
 const ASSIGN_OPTIONS = [
   { value:'__original',    label:'Original estimator (if one exists)' },
@@ -2012,15 +2013,24 @@ let rules = [];                 // [{ conditions:[{category, criteria, amount, u
 let rulesTab = 'hierarchy';     // 'hierarchy' | 'autoassign'
 let gates = [{ category:'Industry', industries:['Federal'] }];  // category+criteria that ALWAYS force manual review
 let autoThreshold = 20;          // # of data points before a category/criteria graduates to autoassign
-/* simulated pilot acceptance history (category+criteria -> data points & accept rate). */
+/* simulated pilot acceptance history (category+criteria -> data points & accept rate).
+   key links a row to its rule in RULE_EXAMPLE so graduation can drive live routing. */
 const ACCEPTANCE = [
-  { label:'Contractor X → Dallas team',          points:24, rate:96 },
-  { label:'Hospital or lab → Dana Brooks',       points:31, rate:97 },
-  { label:'GRD-only under $25k → Bob Tran',      points:22, rate:95 },
-  { label:'Above $250,000 → Greg Olsen',         points:27, rate:89 },
-  { label:'Spiral duct → Mark Reyes',            points:16, rate:94 },
-  { label:'School + North Texas → Sarah Okafor', points:8,  rate:100 },
+  { key:'contractorX', label:'Contractor X → Dallas team',          points:24, rate:96 },
+  { key:'grdSmall',    label:'GRD-only under $25k → Bob Tran',       points:26, rate:97 },
+  { key:'hospitalLab', label:'Hospital or lab → Dana Brooks',        points:33, rate:92 },
+  { key:'value250',    label:'Above $250,000 → Greg Olsen',          points:21, rate:88 },
+  { key:'spiral',      label:'Spiral duct → Mark Reyes',             points:14, rate:95 },
+  { key:'schoolNT',    label:'School + North Texas → Sarah Okafor',  points:9,  rate:100 },
 ];
+/* a rule graduates once its history clears the threshold at >= 95% acceptance. */
+function gradByKey(key){
+  if (!key) return null;
+  const a = ACCEPTANCE.find(x => x.key === key);
+  if (!a) return null;
+  const N = parseInt(autoThreshold) || 0;
+  return (a.points >= N && a.rate >= 95) ? a : null;
+}
 function graduationStatus(a){
   const N = parseInt(autoThreshold) || 0;
   if (a.points >= N && a.rate >= 95) return { cls:'ok',      label:'Autoassign' };
@@ -2097,12 +2107,22 @@ function computeRouting(job){
   const gate = matchGate(job, daysOut);
   const gateInfo = { gated: !!gate, gateRule: gate ? `${gate.category} = ${condCriteria(gate)}` : null };
   const matched = activeHierarchy()
-    .map((r, i) => ({ rank:i+1, conditions:r.conditions, assign:r.assign }))
+    .map((r, i) => ({ rank:i+1, conditions:r.conditions, assign:r.assign, key:r.key }))
     .filter(r => rankMatches(r, job, daysOut));
   if (!matched.length)
     return { manual:true, rec:'Manual review', rank:null,
-             rule:'No configured rule matched — Exception routes to the bid coordinator.', who:null, also:[], ...gateInfo };
+             rule:'No configured rule matched — Exception routes to the bid coordinator.', who:null, also:[],
+             auto:false, autoReason:null, graduated:false, ...gateInfo };
   const top = matched[0], who = whoFor(top.assign);
+  // autoassign when there's no manual-review gate AND either every rule agrees,
+  // or the winning rule has graduated (>= 95% acceptance over the threshold).
+  const agree = new Set(matched.map(m => m.assign)).size === 1;
+  const grad  = gradByKey(top.key);
+  let auto = false, autoReason = null;
+  if (!gate){
+    if (agree){ auto = true; autoReason = 'Autoassigned — every matching rule points to the same desk, so there is no conflict to resolve.'; }
+    else if (grad){ auto = true; autoReason = `Autoassigned — ${top.conditions.map(condCriteria).join(' + ')} → ${assignLabel(top.assign)} has cleared ${grad.rate}% coordinator + estimator acceptance over ${grad.points} reviews (≥ ${parseInt(autoThreshold)||0} data points), so it no longer needs manual review.`; }
+  }
   return {
     manual:false,
     rec: who ? who.name : (assignLabel(top.assign) || 'Unassigned'),
@@ -2110,8 +2130,23 @@ function computeRouting(job){
     rule: 'When ' + top.conditions.map(c => `${c.category} = ${condCriteria(c)}`).join(' and '),
     who,
     also: matched.slice(1).map(m => ({ rank:m.rank, txt:`${m.conditions.map(condCriteria).join(' + ')} → ${assignLabel(m.assign)}` })),
+    auto, autoReason, graduated: !!grad,
     ...gateInfo,
   };
+}
+/* effective board placement: a status:'need' job whose routing autoassigns
+   (and whose inputs are clean) is shown as autoassigned, live with the rules. */
+function boardState(t){
+  const cr = computeRouting(t);
+  if (t.status === 'finished'){
+    const who = t.assignedTo || cr.who || { name:cr.rec, initials:initialsOf(cr.rec) };
+    return { tab:'finished', auto: t.assignedBy === 'auto', override: !!t.override, autoGrad:false, who, cr };
+  }
+  if (cr.auto && !cr.manual && t.inputsReady !== false){
+    const who = cr.who || { name:cr.rec, initials:initialsOf(cr.rec) };
+    return { tab:'finished', auto:true, override:false, autoGrad: cr.graduated, who, cr };
+  }
+  return { tab:'need', auto:false, override:false, autoGrad:false, who:null, cr };
 }
 
 function renderRules(){
