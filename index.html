@@ -422,6 +422,10 @@
   .trow:hover { background: #fafbfc; }
   .c-job { font-size: 14px; font-weight: 600; color: #344054; }
   .c-name .nm { font-size: 14.5px; font-weight: 600; color: #101828; }
+  .urgent-pill { display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; vertical-align: middle;
+    height: 19px; padding: 0 8px 0 7px; border-radius: 999px; background: var(--danger); color: #fff;
+    font-size: 11px; font-weight: 700; }
+  .urgent-pill svg { display: block; }
   .c-name .sub { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
   .c-date { font-size: 14px; color: #475467; }
   .c-due { font-size: 14px; color: #344054; font-weight: 600; }
@@ -497,6 +501,11 @@
   .evi { font-size: 12.5px; font-weight: 600; color: var(--navy); background: #eef1ff; border: 1px solid #dce1ff; border-radius: 999px; padding: 4px 11px; }
   .mb-note { font-size: 13.5px; line-height: 1.45; border-radius: 9px; padding: 11px 13px; }
   .mb-note.danger { color: var(--danger); background: var(--danger-bg); border: 1px solid var(--danger-br); }
+  .mb-note.ok { color: var(--ok); background: var(--ok-bg); border: 1px solid var(--ok-br); display: flex; align-items: center; gap: 8px; }
+  .mb-note svg { flex: 0 0 auto; }
+  .mb-facts { font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+  .mb-facts b { color: var(--ink); font-weight: 600; }
+  .mb-facts .due-em { color: var(--danger); font-weight: 700; }
   .mb-also { border-top: 1px solid var(--line-2); padding-top: 13px; }
   .mb-also .h { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--warn);
                 margin-bottom: 9px; display: flex; align-items: center; gap: 7px; }
@@ -662,6 +671,7 @@
           <div class="mh-rec" id="jmRec"></div>
         </div>
         <div class="modal-body">
+          <div class="mb-facts" id="jmFacts"></div>
           <div class="mb-rule" id="jmRule"></div>
           <div class="mb-who" id="jmWho"></div>
           <div class="mb-evi" id="jmEvi"></div>
@@ -708,7 +718,7 @@ const STATUS = {
    rules are SURFACED (all shown), never auto-resolved. */
 const BIDS = [
   {
-    id:'A', project:'Memorial West — Patient Tower', contractor:'Turner Mechanical',
+    id:'A', project:'Memorial West Expansion', contractor:'Adams Mechanical',
     type:'Hospital · Spiral duct', value:420000, location:'Houston, TX', dueInDays:3,
     outcome:'recommend',
     person:{ role:'Suggested estimator', who:'Dana Brooks · Healthcare', initials:'DB' },
@@ -720,8 +730,8 @@ const BIDS = [
     ],
   },
   {
-    id:'B', project:'Lakeside Retail — Grille Package', contractor:'Brightway Builders',
-    type:'GRD only · Registers/grilles', value:18000, location:'Dallas, TX', dueInDays:10,
+    id:'B', project:'Lakeside Retail Core & Shell', contractor:'Northstar Builders',
+    type:'Retail · GRD only', value:18000, location:'Dallas, TX', dueInDays:10,
     outcome:'auto',
     person:{ role:'Assigned estimator', who:'Bob Tran', initials:'BT' },
     why:'One rule matched cleanly and every field extracted at high confidence, so this auto-assigned. Reassign anytime.',
@@ -730,8 +740,8 @@ const BIDS = [
     ],
   },
   {
-    id:'C', project:'Green Valley HS — RTU Replacement', contractor:'Lone Star Mechanical',
-    type:'School · RTUs + fans + accessories', value:190000, location:'North Texas', dueInDays:5,
+    id:'C', project:'Green Valley High School Renovation', contractor:'Holt Construction',
+    type:'School · RTUs + fans + accessories', value:190000, location:'Fort Worth, TX', dueInDays:5,
     outcome:'recommend',
     person:{ role:'Suggested estimator', who:'Sarah Okafor · N. Texas', initials:'SO' },
     why:'Two rules apply — the territory owner and the equipment-mix team disagree. Suggesting the territory owner; confirm the right desk.',
@@ -741,7 +751,7 @@ const BIDS = [
     ],
   },
   {
-    id:'D', project:'Jefferson Labs — Cleanroom HVAC', contractor:'Contractor X (Vantage Mech.)',
+    id:'D', project:'Jefferson Labs Phase 2', contractor:'Contractor X',
     type:'Laboratory · Spiral duct', value:310000, location:'Austin, TX', dueInDays:4,
     outcome:'recommend',
     person:{ role:'Suggested estimator', who:'Dana Brooks · Healthcare', initials:'DB' },
@@ -1052,35 +1062,50 @@ function renderNav(el, items){
   ).join('');
 }
 
-/* Bid-coordination queue — the bids that did NOT auto-assign (need a human).
-   Due dates are fixed real deadlines; "today" can be stepped on Screen 1. */
+/* Bid-coordination queue for the "Need to assign" tab — the case-study
+   sample jobs. Each carries the routing the rule engine produced, so the
+   pop-up is customized per job. Due dates are fixed real deadlines;
+   "today" can be stepped on Screen 1. */
 const TODOS = [
-  { job:'26-0341', name:'Ft. Bliss — Maintenance Facility', sub:'Federal · manual review',
-    receiptOffset:-4, dueInDays:2, sales:{ name:'R. Diaz', initials:'RD' },
+  { job:'26-0418', name:'Memorial West Expansion', sub:'Hospital · Spiral duct',
+    contractor:'Adams Mechanical', location:'Houston, TX', value:420000, duct:'Spiral',
+    receiptOffset:-2, dueInDays:3, sales:{ name:'T. Nguyen', initials:'TN' },
     routing:{
-      rec:'Manual review',
-      rule:'When Project = Federal, Assignment = Manual review',
-      who:null,
-      evidence:['Project type: Federal'],
-      hardGate:true,
+      rec:'Healthcare specialist',
+      rule:'When Industry = Hospital or Lab, Assignment = Healthcare specialist',
+      who:{ name:'Dana Brooks', initials:'DB' },
+      evidence:['Building type: Hospital', 'Value: $420,000'],
+      also:['Value > $250,000 → Senior estimator', 'Spiral duct → Mark'],
     } },
-  { job:'26-0298', name:'Green Valley HS — RTU Replacement', sub:'School · North Texas',
-    receiptOffset:-6, dueInDays:5, sales:{ name:'J. Pierce', initials:'JP' },
-    routing:{
-      rec:'Sarah Okafor',
-      rule:'When Industry = School and Region = North Texas, Assignment = Sarah Okafor',
-      who:{ name:'Sarah Okafor', initials:'SO' },
-      evidence:['Industry: School', 'Region: North Texas'],
-      also:['Fans + RTUs + accessories → Commercial Applied team'],
-    } },
-  { job:'26-0327', name:'Jefferson Labs — Cleanroom HVAC', sub:'Laboratory · spiral duct',
+  { job:'26-0327', name:'Jefferson Labs Phase 2', sub:'Lab · Spiral duct',
+    contractor:'Contractor X', location:'Austin, TX', value:310000, duct:'Spiral',
     receiptOffset:-3, dueInDays:4, sales:{ name:'M. Alvarez', initials:'MA' },
     routing:{
       rec:'Healthcare specialist',
       rule:'When Industry = Hospital or Lab, Assignment = Healthcare specialist',
       who:{ name:'Dana Brooks', initials:'DB' },
-      evidence:['Industry: Laboratory'],
-      also:['Value > $250k → Senior estimator', 'Spiral duct → Mark Reyes', 'Contractor X → Dallas team'],
+      evidence:['Building type: Lab', 'Value: $310,000'],
+      also:['Value > $250,000 → Senior estimator', 'Spiral duct → Mark', 'Contractor X → Dallas team'],
+    } },
+  { job:'26-0298', name:'Green Valley High School Renovation', sub:'School · North Texas',
+    contractor:'Holt Construction', location:'Fort Worth, TX', value:190000, duct:'Rectangular',
+    receiptOffset:-6, dueInDays:5, sales:{ name:'J. Pierce', initials:'JP' },
+    routing:{
+      rec:'Sarah',
+      rule:'When Industry = School and Region = North Texas, Assignment = Sarah',
+      who:{ name:'Sarah Okafor', initials:'SO' },
+      evidence:['Building type: School', 'Region: North Texas'],
+      also:['Fans + RTUs + duct accessories → Commercial applied team'],
+    } },
+  { job:'26-0305', name:'Lakeside Retail Core & Shell', sub:'Retail · GRD-only',
+    contractor:'Northstar Builders', location:'Dallas, TX', value:18000, duct:'Rectangular',
+    receiptOffset:-1, dueInDays:10, sales:{ name:'K. Webb', initials:'KW' },
+    routing:{
+      rec:'Bob',
+      rule:'When Equipment = GRD-only and Value < $25,000, Assignment = Bob',
+      who:{ name:'Bob Tran', initials:'BT' },
+      evidence:['Equipment: GRD-only', 'Value: $18,000'],
+      also:[],
     } },
 ];
 
@@ -1095,11 +1120,14 @@ function renderTodos(){
                   : daysOut === 0 ? 'Due today'
                   : daysOut === 1 ? 'in 1 day' : `in ${daysOut} days`;
     const sales = `<span class="chip"><span class="cav">${t.sales.initials}</span><span class="cnm">${t.sales.name}</span></span>`;
+    const urgentPill = urgent
+      ? `<span class="urgent-pill"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M12 8v5l3 2" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="#fff" stroke-width="2"/></svg>Urgent</span>`
+      : '';
     // "Need to assign" tab: nothing is assigned yet, so Estimators is blank.
     return `
       <div class="trow" data-i="${i}" title="View routing recommendation">
         <div class="c-job">${t.job}</div>
-        <div class="c-name"><div class="nm">${t.name}</div><div class="sub">${t.sub}</div></div>
+        <div class="c-name"><div class="nm">${t.name}${urgentPill}</div><div class="sub">${t.sub}</div></div>
         <div class="c-date">${fmtMD(receipt)}</div>
         <div class="c-due ${urgent?'urgent':''}">${fmtMD(due)}<span class="due-sub">${dueSub}</span></div>
         <div class="c-est"></div>
@@ -1115,12 +1143,22 @@ function renderTodos(){
 const jobModal = document.getElementById('jobModal');
 function openJobModal(i){
   const t = TODOS[i], r = t.routing;
+  const due = addDays(REAL_TODAY, t.dueInDays);
+  const daysOut = Math.round((startOfDay(due) - simToday()) / DAY);
+  const urgent = daysOut <= 3;
+  const dueLabel = daysOut < 0 ? `Overdue ${Math.abs(daysOut)}d`
+                 : daysOut === 0 ? 'Due today' : `Due in ${daysOut} day${daysOut === 1 ? '' : 's'}`;
+
   document.getElementById('jmJob').textContent = `${t.name} · #${t.job}`;
   document.getElementById('jmRec').innerHTML = `Recommended assignment: <b>${r.rec}</b>`;
+  document.getElementById('jmFacts').innerHTML =
+    `${t.contractor} · ${t.location} · <b>${money(t.value)}</b> · ${t.duct} duct · ` +
+    `<span class="${urgent ? 'due-em' : ''}">${dueLabel}</span>`;
   document.getElementById('jmRule').innerHTML = `<span class="lab">Rule:</span><b>${r.rule}</b>`;
   document.getElementById('jmWho').innerHTML = r.who
     ? `<span class="cav">${r.who.initials}</span><span>Suggested estimator: <b>${r.who.name}</b></span>` : '';
   document.getElementById('jmEvi').innerHTML = (r.evidence || []).map(e => `<span class="evi">${e}</span>`).join('');
+
   const extra = document.getElementById('jmExtra');
   if (r.hardGate){
     extra.innerHTML = `<div class="mb-note danger">Hard gate — this overrides every other rule. Federal work always holds for manual review.</div>`;
@@ -1130,7 +1168,8 @@ function openJobModal(i){
       `<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 4l9 16H3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 10v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>` +
       `Also matched — your call</div><ul>${r.also.map(a => `<li>${a}</li>`).join('')}</ul></div>`;
   } else {
-    extra.innerHTML = '';
+    extra.innerHTML =
+      `<div class="mb-note ok"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#027a48" stroke-width="1.8"/><path d="M8 12.5l2.5 2.5L16 9" stroke="#027a48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Only one rule matched — no conflicts, high confidence.</span></div>`;
   }
   jobModal.classList.add('show');
 }
