@@ -414,9 +414,12 @@
   /* ---- table ---- */
   .tbl {
     margin: 14px 30px 0; border-top: 1px solid var(--line-2);
-    --grid: 112px minmax(230px, 1.4fr) 156px 176px minmax(150px,1fr) minmax(150px,1fr);
+    --grid: 90px minmax(186px,1.2fr) 130px 150px 132px minmax(128px,1fr) minmax(118px,1fr);
     overflow: auto; flex: 1 1 auto;
   }
+  .c-inputs { font-size: 15px; font-weight: 700; }
+  .inp-y { color: #101828; }
+  .inp-n { color: var(--danger); }
   .tbl-head, .trow { display: grid; grid-template-columns: var(--grid); align-items: center; }
   .tbl-head { padding: 13px 8px; }
   .tbl-head > div { font-size: 11.5px; font-weight: 600; letter-spacing: .06em; color: #98a2b3; text-transform: uppercase; }
@@ -532,6 +535,7 @@
   .mb-also.resolved .h { color: var(--ink-3); }
   .mb-also.resolved li::before { background: var(--ink-3); }
   .modal-actions { margin-top: auto; display: flex; gap: 10px; padding-top: 6px; }
+  .modal-actions .left { margin-right: auto; }
   .m-btn { height: 40px; border-radius: 9px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
            padding: 0 18px; border: 1px solid var(--line); background: #fff; color: var(--ink); }
   .m-btn:hover { background: #f7f8fb; }
@@ -593,6 +597,49 @@
   .pick-opt:has(input:checked) { border-color: var(--blue); background: #f5f6ff; }
   .pick-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 20px 18px; }
   .m-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* ---- populated template + source email (See more details) ---- */
+  .tmpl-card, .email-card { width: min(560px, 92vw); max-height: 86vh; display: flex; flex-direction: column; background: #fff;
+    border-radius: 14px; overflow: hidden; box-shadow: 0 32px 80px rgba(8,16,40,.45); animation: modalIn .26s cubic-bezier(.16,1,.3,1) both; }
+  .tmpl-banner { padding: 15px 18px 15px 22px; display: flex; align-items: center; gap: 10px; }
+  .tmpl-banner.ok  { background: var(--ok-bg);     border-bottom: 1px solid var(--ok-br); }
+  .tmpl-banner.bad { background: var(--danger-bg); border-bottom: 1px solid var(--danger-br); }
+  .tmpl-banner .bt { font-size: 17px; font-weight: 700; }
+  .tmpl-banner.ok  .bt { color: var(--ok); }
+  .tmpl-banner.bad .bt { color: var(--danger); }
+  .tmpl-banner .bx { margin-left: auto; }
+  .tmpl-sub { padding: 12px 22px 2px; font-size: 12px; color: var(--ink-3); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .tmpl-body { overflow: auto; padding: 6px 22px 6px; }
+  .tmpl-grid { display: grid; grid-template-columns: 168px 1fr; }
+  .tfield { padding: 9px 0; border-bottom: 1px solid var(--line-2); font-size: 13px; color: var(--ink-3); font-weight: 600; }
+  .tval { padding: 9px 0; border-bottom: 1px solid var(--line-2); font-size: 13.5px; color: #101828; display: flex; align-items: center; gap: 7px; }
+  .tval .ck { color: var(--ok); flex: 0 0 auto; }
+  .tval.flag { color: var(--danger); font-weight: 600; }
+  .tflag-note { grid-column: 1 / -1; font-size: 12px; color: var(--danger); padding: 9px 11px; background: var(--danger-bg);
+    border: 1px solid var(--danger-br); border-radius: 8px; margin: 11px 0 4px; display: flex; gap: 8px; line-height: 1.45; }
+  .tmpl-source { margin: 12px 22px 18px; padding: 11px 13px; border: 1px solid var(--line); border-radius: 10px; background: #fafbfc;
+    cursor: pointer; display: flex; align-items: center; gap: 11px; text-align: left; font-family: inherit; }
+  .tmpl-source:hover { background: #f2f4f7; border-color: #d0d5dd; }
+  .tmpl-source .env { width: 34px; height: 34px; border-radius: 8px; background: #eef1ff; display: grid; place-items: center; flex: 0 0 auto; }
+  .tmpl-source .es { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+  .tmpl-source .es .e1 { font-size: 13px; font-weight: 600; color: #101828; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tmpl-source .es .e2 { font-size: 12px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tmpl-source .go { color: var(--blue); font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+
+  .email-head { padding: 16px 22px 13px; border-bottom: 1px solid var(--line-2); display: flex; align-items: flex-start; gap: 12px; }
+  .email-head .back { width: 30px; height: 30px; border-radius: 8px; border: none; background: #f2f4f7; color: var(--ink-2); cursor: pointer; font-size: 15px; flex: 0 0 auto; }
+  .email-head .back:hover { background: #e4e7ec; }
+  .email-subject { font-size: 17px; font-weight: 700; color: #101828; line-height: 1.3; }
+  .email-meta { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+  .email-meta .avx { width: 36px; height: 36px; border-radius: 50%; background: var(--navy); color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 700; flex: 0 0 auto; }
+  .email-meta .em .ef { font-size: 13.5px; font-weight: 600; color: #101828; }
+  .email-meta .em .et { font-size: 12px; color: var(--ink-3); }
+  .email-meta .ed { margin-left: auto; font-size: 12px; color: var(--ink-3); white-space: nowrap; }
+  .email-body { overflow: auto; padding: 16px 22px; font-size: 14px; color: #1d2939; line-height: 1.62; white-space: pre-wrap; }
+  .email-attach { margin: 0 22px 18px; display: flex; align-items: center; gap: 11px; padding: 10px 13px; border: 1px solid var(--line); border-radius: 10px; }
+  .email-attach .fi { width: 32px; height: 38px; border-radius: 5px; background: #fee4e2; color: #b42318; display: grid; place-items: center; font-size: 9px; font-weight: 800; flex: 0 0 auto; }
+  .email-attach .an { font-size: 13px; font-weight: 600; color: #101828; }
+  .email-attach .asz { font-size: 12px; color: var(--ink-3); }
 </style>
 </head>
 <body>
@@ -725,6 +772,7 @@
           <div>Job Name</div>
           <div>Bid Receipt Date</div>
           <div>Bid Due Date</div>
+          <div>All required inputs ready?</div>
           <div>Estimators</div>
           <div>Salespeople</div>
         </div>
@@ -760,8 +808,9 @@
           <div class="mb-evi" id="jmEvi"></div>
           <div id="jmExtra"></div>
           <div class="modal-actions">
-            <button class="m-btn primary" id="jmConfirm">Confirm assignment</button>
+            <button class="m-btn left" id="jmDetails">See more details</button>
             <button class="m-btn" id="jmOverride">Override…</button>
+            <button class="m-btn primary" id="jmConfirm">Confirm assignment</button>
           </div>
         </div>
       </div>
@@ -802,6 +851,46 @@
         <div class="pick-actions">
           <button class="m-btn" id="pickCancel">Cancel</button>
           <button class="m-btn primary" id="pickAssign">Assign</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Populated extraction template (See more details) -->
+    <div class="modal-scrim" id="tmplModal">
+      <div class="tmpl-card" role="dialog" aria-modal="true">
+        <div class="tmpl-banner ok" id="tmplBanner">
+          <span id="tmplBannerIcon"></span>
+          <span class="bt" id="tmplBannerText">All required inputs ready</span>
+          <button class="fb-x bx" id="tmplClose" aria-label="Close">✕</button>
+        </div>
+        <div class="tmpl-sub"><span>Populated from the contractor's email by Rebar AI</span><span id="tmplJob"></span></div>
+        <div class="tmpl-body"><div class="tmpl-grid" id="tmplGrid"></div></div>
+        <button class="tmpl-source" id="tmplSource">
+          <span class="env"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="#3536e5" stroke-width="1.7"/><path d="M4 7l8 6 8-6" stroke="#3536e5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span class="es"><span class="e1" id="tmplSourceName"></span><span class="e2" id="tmplSourceSub"></span></span>
+          <span class="go">View email →</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Source email from the contractor -->
+    <div class="modal-scrim" id="emailModal">
+      <div class="email-card" role="dialog" aria-modal="true">
+        <div class="email-head">
+          <button class="back" id="emBack" aria-label="Back to template">←</button>
+          <div style="flex:1; min-width:0">
+            <div class="email-subject" id="emSubject"></div>
+            <div class="email-meta">
+              <span class="avx" id="emAv"></span>
+              <span class="em"><div class="ef" id="emFrom"></div><div class="et" id="emAddr"></div></span>
+              <span class="ed" id="emDate"></span>
+            </div>
+          </div>
+        </div>
+        <div class="email-body" id="emBody"></div>
+        <div class="email-attach">
+          <span class="fi">PDF</span>
+          <span><div class="an" id="emAttachName"></div><div class="asz">Plan set · 4.2 MB</div></span>
         </div>
       </div>
     </div>
@@ -1191,6 +1280,11 @@ function renderNav(el, items){
 const TODOS = [
   { job:'26-0418', name:'Memorial West Expansion', sub:'Hospital · Spiral duct',
     contractor:'Adams Mechanical', location:'Houston, TX', value:420000, duct:'Spiral',
+    buildingType:'Hospital', equipment:'AHUs, VAVs, fans', branch:'Houston', existingEstimator:'None',
+    inputsReady:true, flagged:null,
+    email:{ from:'Adams Mechanical', addr:'estimating@adamsmech.com', received:'Jun 24, 2026 · 8:12 AM',
+      subject:'Invitation to Bid — Memorial West Expansion (Patient Tower)',
+      body:'Hi team — attaching the plan set for the Memorial West Expansion patient tower in Houston. Hospital project, spiral ductwork; equipment is AHUs, VAVs, and fans. Estimated equipment value ~$420k. Bid is due in 3 days. Let us know if anything is unclear. — Adams Mechanical Estimating' },
     receiptOffset:-2, dueInDays:3, status:'need', sales:{ name:'T. Nguyen', initials:'TN' },
     routing:{
       rec:'Healthcare specialist', rank:4,
@@ -1201,6 +1295,11 @@ const TODOS = [
     } },
   { job:'26-0327', name:'Jefferson Labs Phase 2', sub:'Lab · Spiral duct',
     contractor:'Contractor X', location:'Austin, TX', value:310000, duct:'Spiral',
+    buildingType:'Lab', equipment:'Exhaust fans, MAUs, GRDs', branch:'Austin', existingEstimator:'None',
+    inputsReady:true, flagged:null,
+    email:{ from:'Contractor X', addr:'bids@vantagemech.com', received:'Jun 24, 2026 · 9:47 AM',
+      subject:'Bid set — Jefferson Labs Phase 2',
+      body:'Plan set attached for Jefferson Labs Phase 2 in Austin. Laboratory build-out, spiral duct; exhaust fans, MAUs, and GRDs. Estimated equipment value ~$310k. Due in 4 days. Thanks.' },
     receiptOffset:-3, dueInDays:4, status:'need', sales:{ name:'M. Alvarez', initials:'MA' },
     routing:{
       rec:'Healthcare specialist', rank:4,
@@ -1211,6 +1310,11 @@ const TODOS = [
     } },
   { job:'26-0298', name:'Green Valley High School Renovation', sub:'School · North Texas',
     contractor:'Holt Construction', location:'Fort Worth, TX', value:190000, duct:'Rectangular',
+    buildingType:'School', equipment:'RTUs, fans, duct accessories', branch:'North Texas', existingEstimator:'None',
+    inputsReady:false, flagged:{ field:'Building type', note:'Inferred as “School” from the drawing titles — low confidence. Confirm before assigning.' },
+    email:{ from:'Holt Construction', addr:'estimating@holtconstruction.com', received:'Jun 24, 2026 · 7:38 AM',
+      subject:'Green Valley renovation — plans',
+      body:'Drawings attached for the Green Valley renovation in Fort Worth. RTUs, fans, and duct accessories; rectangular duct. Estimated equipment value ~$190k. Due in 5 days.' },
     receiptOffset:-6, dueInDays:5, status:'need', sales:{ name:'J. Pierce', initials:'JP' },
     routing:{
       rec:'Sarah', rank:3,
@@ -1221,6 +1325,11 @@ const TODOS = [
     } },
   { job:'26-0305', name:'Lakeside Retail Core & Shell', sub:'Retail · GRD-only',
     contractor:'Northstar Builders', location:'Dallas, TX', value:18000, duct:'Rectangular',
+    buildingType:'Retail', equipment:'GRDs (grilles/registers/diffusers) only', branch:'Dallas', existingEstimator:'None',
+    inputsReady:true, flagged:null,
+    email:{ from:'Northstar Builders', addr:'preconstruction@northstarbuilders.com', received:'Jun 24, 2026 · 6:55 AM',
+      subject:'Bid request — Lakeside Retail Core & Shell',
+      body:'Attaching the Lakeside Retail core & shell package in Dallas. GRD-only, rectangular duct. Estimated equipment value ~$18k. Due in 10 days.' },
     receiptOffset:-1, dueInDays:10, status:'finished', assignedBy:'auto', sales:{ name:'K. Webb', initials:'KW' },
     routing:{
       rec:'Bob', rank:8,
@@ -1280,6 +1389,7 @@ function renderTodos(){
         <div class="c-name"><div class="nm">${t.name}${urgentPill}</div><div class="sub">${t.sub}</div></div>
         <div class="c-date">${fmtMD(RECEIPT_DATE)}</div>
         <div class="c-due ${urgent?'urgent':''}">${fmtMD(due)}<span class="due-sub">${dueSub}</span></div>
+        <div class="c-inputs">${t.inputsReady ? '<span class="inp-y">Y</span>' : '<span class="inp-n">N</span>'}</div>
         <div class="c-est">${est}</div>
         <div>${sales}</div>
       </div>`;
@@ -1349,10 +1459,9 @@ function openJobModal(i){
   } else if (r.also && r.also.length){
     const header = finished ? 'Other rules that matched' : 'Also matched — your call';
     const items  = r.also.map(a => `<li><span class="rank sm">Rank ${a.rank}</span>${a.txt}</li>`).join('');
-    const hint   = finished ? '' : `<div class="mb-hint">Lower rank = higher priority, so the Rank ${r.rank} rule above is recommended.</div>`;
     html += `<div class="mb-also${finished ? ' resolved' : ''}"><div class="h">` +
       `<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 4l9 16H3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 10v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>` +
-      `${header}</div><ul>${items}</ul>${hint}</div>`;
+      `${header}</div><ul>${items}</ul></div>`;
   } else if (!finished){
     html += okNote('Only one rule matched — no conflicts, high confidence.');
   }
@@ -1385,7 +1494,9 @@ document.getElementById('jmOverride').onclick = () => {      // "Override…" (n
 jobModal.addEventListener('click', e => { if (e.target === jobModal) closeJobModal(); });
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
-  if (pickModal.classList.contains('show')) { closePicker(); openJobModal(pickIndex); return; }
+  if (emailModal.classList.contains('show')) { closeEmail(); openTemplate(detailIndex); return; }
+  if (tmplModal.classList.contains('show'))  { closeTemplate(); openJobModal(detailIndex); return; }
+  if (pickModal.classList.contains('show'))  { closePicker(); openJobModal(pickIndex); return; }
   closeJobModal(); closeFb();
 });
 
@@ -1460,6 +1571,67 @@ document.getElementById('pickAssign').onclick = () => {
 document.getElementById('pickCancel').onclick = () => { closePicker(); openJobModal(pickIndex); };
 document.getElementById('pickClose').onclick  = () => { closePicker(); openJobModal(pickIndex); };
 pickModal.addEventListener('click', e => { if (e.target === pickModal) { closePicker(); openJobModal(pickIndex); } });
+
+/* ---- populated extraction template + source email (See more details) ---- */
+const tmplModal  = document.getElementById('tmplModal');
+const emailModal = document.getElementById('emailModal');
+let detailIndex = null;
+const initialsOf = (name) => name.split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+
+function openTemplate(i){
+  detailIndex = i;
+  const t = TODOS[i], ready = t.inputsReady;
+  document.getElementById('tmplBanner').className = 'tmpl-banner ' + (ready ? 'ok' : 'bad');
+  document.getElementById('tmplBannerText').textContent = ready ? 'All required inputs ready' : 'Missing required inputs';
+  document.getElementById('tmplBannerIcon').innerHTML = ready
+    ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#027a48" stroke-width="1.9"/><path d="M8 12.5l2.5 2.5L16 9" stroke="#027a48" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 4l9 16H3z" stroke="#b42318" stroke-width="1.9" stroke-linejoin="round"/><path d="M12 10v4" stroke="#b42318" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17" r="1.1" fill="#b42318"/></svg>';
+  document.getElementById('tmplJob').textContent = `${t.name} · #${t.job}`;
+
+  const due = addDays(REAL_TODAY, t.dueInDays);
+  const fields = [
+    ['Contractor', t.contractor], ['Location', t.location], ['Building type', t.buildingType],
+    ['Equipment', t.equipment], ['Duct type', t.duct], ['Est. equipment value', money(t.value)],
+    ['Branch', t.branch], ['Bid due date', fmtMD(due)], ['Existing estimator', t.existingEstimator],
+  ];
+  const flaggedField = t.flagged ? t.flagged.field : null;
+  const ck = '<svg class="ck" width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4 4 10-10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const flagIcon = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 4l9 16H3z" stroke="#b42318" stroke-width="1.9" stroke-linejoin="round"/><path d="M12 10v4" stroke="#b42318" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17" r="1.1" fill="#b42318"/></svg>';
+  let grid = fields.map(([k, v]) => {
+    const isFlag = k === flaggedField;
+    const val = isFlag
+      ? `<div class="tval flag">${flagIcon}${v} — needs confirmation</div>`
+      : `<div class="tval">${ck}${v}</div>`;
+    return `<div class="tfield">${k}</div>${val}`;
+  }).join('');
+  if (t.flagged) grid += `<div class="tflag-note">${flagIcon}<span>${t.flagged.note}</span></div>`;
+  document.getElementById('tmplGrid').innerHTML = grid;
+
+  document.getElementById('tmplSourceName').textContent = `${t.email.from} · ${t.email.addr}`;
+  document.getElementById('tmplSourceSub').textContent  = t.email.subject;
+  tmplModal.classList.add('show');
+}
+function closeTemplate(){ tmplModal.classList.remove('show'); }
+
+function openEmail(i){
+  const t = TODOS[i], e = t.email;
+  document.getElementById('emSubject').textContent = e.subject;
+  document.getElementById('emFrom').textContent = e.from;
+  document.getElementById('emAddr').textContent = `<${e.addr}>  ·  to me`;
+  document.getElementById('emDate').textContent = e.received;
+  document.getElementById('emAv').textContent = initialsOf(e.from);
+  document.getElementById('emBody').textContent = e.body;
+  document.getElementById('emAttachName').textContent = `${t.name} — Plan Set.pdf`;
+  emailModal.classList.add('show');
+}
+function closeEmail(){ emailModal.classList.remove('show'); }
+
+document.getElementById('jmDetails').onclick  = () => { const i = openJobIndex; closeJobModal(); openTemplate(i); };
+document.getElementById('tmplClose').onclick  = () => { closeTemplate(); openJobModal(detailIndex); };
+document.getElementById('tmplSource').onclick = () => { closeTemplate(); openEmail(detailIndex); };
+document.getElementById('emBack').onclick     = () => { closeEmail(); openTemplate(detailIndex); };
+tmplModal.addEventListener('click',  e => { if (e.target === tmplModal)  { closeTemplate(); openJobModal(detailIndex); } });
+emailModal.addEventListener('click', e => { if (e.target === emailModal) { closeEmail(); openTemplate(detailIndex); } });
 
 function openApp(){ setTab('need'); document.getElementById('appView').classList.add('show'); }
 function closeApp(){ document.getElementById('appView').classList.remove('show'); }
