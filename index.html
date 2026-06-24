@@ -446,6 +446,69 @@
     box-shadow: 0 10px 26px rgba(0,0,0,.3);
   }
   .back-desk:hover { background: rgba(20,28,48,.95); }
+
+  /* ---- job routing modal (opens when a row is clicked) ---- */
+  .trow { cursor: pointer; }
+  .modal-scrim {
+    position: fixed; inset: 0; z-index: 200; display: none;
+    background: rgba(8,16,40,.55); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+    align-items: center; justify-content: center; padding: 24px;
+  }
+  .modal-scrim.show { display: flex; }
+  .modal {
+    width: min(560px, 92vw); max-height: 86vh;
+    background: #fff; border-radius: 16px; overflow: hidden; position: relative;
+    display: flex; flex-direction: column;
+    box-shadow: 0 32px 80px rgba(8,16,40,.45);
+    animation: modalIn .26s cubic-bezier(.16,1,.3,1) both;
+  }
+  @keyframes modalIn { from { opacity: 0; transform: translateY(12px) scale(.985); } to { opacity: 1; transform: none; } }
+  .modal-x {
+    position: absolute; top: 14px; right: 14px; z-index: 2;
+    width: 32px; height: 32px; border-radius: 8px; border: none; cursor: pointer;
+    background: rgba(255,255,255,.18); color: #fff; font-size: 14px; display: grid; place-items: center;
+  }
+  .modal-x:hover { background: rgba(255,255,255,.30); }
+
+  /* top third — recommendation band */
+  .modal-head {
+    flex: 0 0 auto; min-height: 130px;
+    background: linear-gradient(155deg, #11317f 0%, #081e5a 100%);
+    color: #fff; padding: 24px 30px; display: flex; flex-direction: column; justify-content: center; gap: 9px;
+  }
+  .mh-job { font-size: 13px; font-weight: 600; color: rgba(255,255,255,.66); }
+  .mh-rec { font-size: 27px; line-height: 1.22; font-weight: 500; letter-spacing: -.01em; }
+  .mh-rec b { font-weight: 800; }
+
+  /* lower two-thirds — the rule + evidence */
+  .modal-body {
+    flex: 1 1 auto; min-height: 0; overflow: auto;
+    padding: 22px 30px 22px; display: flex; flex-direction: column; gap: 13px;
+  }
+  .mb-rule { font-size: 19px; line-height: 1.42; color: #1d2939; }
+  .mb-rule .lab { color: var(--ink-3); font-weight: 700; margin-right: 5px; }
+  .mb-rule b { font-weight: 700; color: #101828; }
+  .mb-who { display: flex; align-items: center; gap: 9px; font-size: 14px; color: var(--ink-2); }
+  .mb-who:empty { display: none; }
+  .mb-who .cav { width: 26px; height: 26px; border-radius: 50%; background: var(--navy); color: #fff; display: grid; place-items: center; font-size: 10.5px; font-weight: 700; }
+  .mb-who b { color: var(--ink); font-weight: 700; }
+  .mb-evi { display: flex; flex-wrap: wrap; gap: 8px; }
+  .mb-evi:empty { display: none; }
+  .evi { font-size: 12.5px; font-weight: 600; color: var(--navy); background: #eef1ff; border: 1px solid #dce1ff; border-radius: 999px; padding: 4px 11px; }
+  .mb-note { font-size: 13.5px; line-height: 1.45; border-radius: 9px; padding: 11px 13px; }
+  .mb-note.danger { color: var(--danger); background: var(--danger-bg); border: 1px solid var(--danger-br); }
+  .mb-also { border-top: 1px solid var(--line-2); padding-top: 13px; }
+  .mb-also .h { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--warn);
+                margin-bottom: 9px; display: flex; align-items: center; gap: 7px; }
+  .mb-also ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 7px; }
+  .mb-also li { font-size: 13.5px; color: var(--ink-2); display: flex; align-items: center; gap: 9px; }
+  .mb-also li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--warn); flex: 0 0 auto; }
+  .modal-actions { margin-top: auto; display: flex; gap: 10px; padding-top: 6px; }
+  .m-btn { height: 40px; border-radius: 9px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+           padding: 0 18px; border: 1px solid var(--line); background: #fff; color: var(--ink); }
+  .m-btn:hover { background: #f7f8fb; }
+  .m-btn.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .m-btn.primary:hover { filter: brightness(1.06); }
 </style>
 </head>
 <body>
@@ -589,6 +652,27 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M14 6l-6 6 6 6" stroke="#dfe5f5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Back to desktop
     </button>
+
+    <!-- Routing recommendation modal (opens when a row is clicked) -->
+    <div class="modal-scrim" id="jobModal">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="jmRec">
+        <button class="modal-x" id="jmClose" aria-label="Close">✕</button>
+        <div class="modal-head">
+          <div class="mh-job" id="jmJob"></div>
+          <div class="mh-rec" id="jmRec"></div>
+        </div>
+        <div class="modal-body">
+          <div class="mb-rule" id="jmRule"></div>
+          <div class="mb-who" id="jmWho"></div>
+          <div class="mb-evi" id="jmEvi"></div>
+          <div id="jmExtra"></div>
+          <div class="modal-actions">
+            <button class="m-btn primary" id="jmConfirm">Confirm assignment</button>
+            <button class="m-btn" id="jmOverride">Override…</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div><!-- /.app-view -->
 
 <script>
@@ -972,16 +1056,37 @@ function renderNav(el, items){
    Due dates are fixed real deadlines; "today" can be stepped on Screen 1. */
 const TODOS = [
   { job:'26-0341', name:'Ft. Bliss — Maintenance Facility', sub:'Federal · manual review',
-    receiptOffset:-4, dueInDays:2, est:null, sales:{ name:'R. Diaz', initials:'RD' } },
+    receiptOffset:-4, dueInDays:2, sales:{ name:'R. Diaz', initials:'RD' },
+    routing:{
+      rec:'Manual review',
+      rule:'When Project = Federal, Assignment = Manual review',
+      who:null,
+      evidence:['Project type: Federal'],
+      hardGate:true,
+    } },
   { job:'26-0298', name:'Green Valley HS — RTU Replacement', sub:'School · North Texas',
-    receiptOffset:-6, dueInDays:5, est:{ name:'Sarah Okafor', initials:'SO' }, sales:{ name:'J. Pierce', initials:'JP' } },
+    receiptOffset:-6, dueInDays:5, sales:{ name:'J. Pierce', initials:'JP' },
+    routing:{
+      rec:'Sarah Okafor',
+      rule:'When Industry = School and Region = North Texas, Assignment = Sarah Okafor',
+      who:{ name:'Sarah Okafor', initials:'SO' },
+      evidence:['Industry: School', 'Region: North Texas'],
+      also:['Fans + RTUs + accessories → Commercial Applied team'],
+    } },
   { job:'26-0327', name:'Jefferson Labs — Cleanroom HVAC', sub:'Laboratory · spiral duct',
-    receiptOffset:-3, dueInDays:4, est:{ name:'Dana Brooks', initials:'DB' }, sales:{ name:'M. Alvarez', initials:'MA' } },
+    receiptOffset:-3, dueInDays:4, sales:{ name:'M. Alvarez', initials:'MA' },
+    routing:{
+      rec:'Healthcare specialist',
+      rule:'When Industry = Hospital or Lab, Assignment = Healthcare specialist',
+      who:{ name:'Dana Brooks', initials:'DB' },
+      evidence:['Industry: Laboratory'],
+      also:['Value > $250k → Senior estimator', 'Spiral duct → Mark Reyes', 'Contractor X → Dallas team'],
+    } },
 ];
 
 function renderTodos(){
   const today = simToday();
-  document.getElementById('tblBody').innerHTML = TODOS.map(t => {
+  document.getElementById('tblBody').innerHTML = TODOS.map((t, i) => {
     const receipt = addDays(REAL_TODAY, t.receiptOffset);
     const due     = addDays(REAL_TODAY, t.dueInDays);
     const daysOut = Math.round((startOfDay(due) - today) / DAY);
@@ -989,21 +1094,52 @@ function renderTodos(){
     const dueSub  = daysOut < 0 ? `${Math.abs(daysOut)} days overdue`
                   : daysOut === 0 ? 'Due today'
                   : daysOut === 1 ? 'in 1 day' : `in ${daysOut} days`;
-    const est = t.est
-      ? `<span class="chip"><span class="cav">${t.est.initials}</span><span class="cnm">${t.est.name}</span></span>`
-      : `<span class="pending"><span class="dot"></span>Pending review</span>`;
     const sales = `<span class="chip"><span class="cav">${t.sales.initials}</span><span class="cnm">${t.sales.name}</span></span>`;
+    // "Need to assign" tab: nothing is assigned yet, so Estimators is blank.
     return `
-      <div class="trow">
+      <div class="trow" data-i="${i}" title="View routing recommendation">
         <div class="c-job">${t.job}</div>
         <div class="c-name"><div class="nm">${t.name}</div><div class="sub">${t.sub}</div></div>
         <div class="c-date">${fmtMD(receipt)}</div>
         <div class="c-due ${urgent?'urgent':''}">${fmtMD(due)}<span class="due-sub">${dueSub}</span></div>
-        <div>${est}</div>
+        <div class="c-est"></div>
         <div>${sales}</div>
       </div>`;
   }).join('');
+  document.querySelectorAll('#tblBody .trow').forEach(row => {
+    row.onclick = () => openJobModal(+row.dataset.i);
+  });
 }
+
+/* ---- routing recommendation modal (per job) ---- */
+const jobModal = document.getElementById('jobModal');
+function openJobModal(i){
+  const t = TODOS[i], r = t.routing;
+  document.getElementById('jmJob').textContent = `${t.name} · #${t.job}`;
+  document.getElementById('jmRec').innerHTML = `Recommended assignment: <b>${r.rec}</b>`;
+  document.getElementById('jmRule').innerHTML = `<span class="lab">Rule:</span><b>${r.rule}</b>`;
+  document.getElementById('jmWho').innerHTML = r.who
+    ? `<span class="cav">${r.who.initials}</span><span>Suggested estimator: <b>${r.who.name}</b></span>` : '';
+  document.getElementById('jmEvi').innerHTML = (r.evidence || []).map(e => `<span class="evi">${e}</span>`).join('');
+  const extra = document.getElementById('jmExtra');
+  if (r.hardGate){
+    extra.innerHTML = `<div class="mb-note danger">Hard gate — this overrides every other rule. Federal work always holds for manual review.</div>`;
+  } else if (r.also && r.also.length){
+    extra.innerHTML =
+      `<div class="mb-also"><div class="h">` +
+      `<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 4l9 16H3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 10v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>` +
+      `Also matched — your call</div><ul>${r.also.map(a => `<li>${a}</li>`).join('')}</ul></div>`;
+  } else {
+    extra.innerHTML = '';
+  }
+  jobModal.classList.add('show');
+}
+function closeJobModal(){ jobModal.classList.remove('show'); }
+document.getElementById('jmClose').onclick    = closeJobModal;
+document.getElementById('jmConfirm').onclick  = closeJobModal;
+document.getElementById('jmOverride').onclick = closeJobModal;
+jobModal.addEventListener('click', e => { if (e.target === jobModal) closeJobModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeJobModal(); });
 
 function openApp(){ renderTodos(); document.getElementById('appView').classList.add('show'); }
 function closeApp(){ document.getElementById('appView').classList.remove('show'); }
