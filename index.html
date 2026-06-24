@@ -1602,17 +1602,22 @@ function updatePickBtn(){
   const btn = document.getElementById('pickAssign');
   const reasonWrap = document.getElementById('pickReason');
   const reasonSel  = document.getElementById('pickReasonSel');
+  const reasonText = document.getElementById('pickReasonText');
   if (!sel){ btn.disabled = true; btn.textContent = 'Assign'; reasonWrap.classList.remove('show'); return; }
   const chosen = ESTIMATORS[+sel.value];
   const recWho = TODOS[pickIndex].routing.who;
   const isOverride = !(recWho && chosen.name === recWho.name);    // chose someone other than the recommendation
   reasonWrap.classList.toggle('show', isOverride);
+  const needsText = /please specify/i.test(reasonSel.value);      // reason code asks the user to specify
+  reasonText.placeholder = needsText ? 'Please specify… (required)' : 'Please specify…';
+  const reasonOk = reasonSel.value && (!needsText || reasonText.value.trim().length > 0);
   btn.textContent = `Assign to ${chosen.name}`;
-  btn.disabled = isOverride && !reasonSel.value;                  // override needs a reason code
+  btn.disabled = isOverride && !reasonOk;                         // override needs a reason code (+ text when it says "please specify")
 }
 function closePicker(){ pickModal.classList.remove('show'); }
 document.getElementById('pickList').addEventListener('change', updatePickBtn);
 document.getElementById('pickReasonSel').addEventListener('change', updatePickBtn);
+document.getElementById('pickReasonText').addEventListener('input', updatePickBtn);
 document.getElementById('pickAssign').onclick = () => {
   const sel = document.querySelector('input[name="pickEst"]:checked');
   if (!sel) return;
@@ -1620,7 +1625,11 @@ document.getElementById('pickAssign').onclick = () => {
   const t = TODOS[pickIndex];
   const wasNeed = t.status === 'need';
   const isOverride = !(t.routing.who && chosen.name === t.routing.who.name);
-  if (isOverride && !document.getElementById('pickReasonSel').value) return;   // guard
+  if (isOverride){                                                              // guard: need a reason (+ text if it says "please specify")
+    const rv = document.getElementById('pickReasonSel').value;
+    const needsText = /please specify/i.test(rv);
+    if (!rv || (needsText && !document.getElementById('pickReasonText').value.trim())) return;
+  }
   t.assignedTo = { name: chosen.name, initials: chosen.initials, role: chosen.role };
   t.assignedBy = 'coordinator';
   t.override   = isOverride;
