@@ -415,7 +415,7 @@
   .tbl {
     margin: 14px 30px 0; border-top: 1px solid var(--line-2);
     --grid: 112px minmax(230px, 1.4fr) 156px 176px minmax(150px,1fr) minmax(150px,1fr);
-    overflow: auto;
+    overflow: auto; flex: 1 1 auto;
   }
   .tbl-head, .trow { display: grid; grid-template-columns: var(--grid); align-items: center; }
   .tbl-head { padding: 13px 8px; }
@@ -441,6 +441,9 @@
   .auto-pill { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 8px 0 7px; border-radius: 999px;
     background: var(--ok-bg); color: var(--ok); border: 1px solid var(--ok-br); font-size: 11px; font-weight: 600; }
   .auto-pill svg { display: block; }
+  .assigned-pill { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 8px 0 7px; border-radius: 999px;
+    background: #eef1ff; color: #2f3bd6; border: 1px solid #dce1ff; font-size: 11px; font-weight: 600; }
+  .assigned-pill svg { display: block; }
   .chip { display: inline-flex; align-items: center; gap: 8px; }
   .chip .cav { width: 28px; height: 28px; border-radius: 50%; background: var(--navy); color: #fff;
                display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: 0 0 auto; }
@@ -500,6 +503,11 @@
   .mb-rule { font-size: 19px; line-height: 1.42; color: #1d2939; }
   .mb-rule .lab { color: var(--ink-3); font-weight: 700; margin-right: 5px; }
   .mb-rule b { font-weight: 700; color: #101828; }
+  .mb-rule .rank { margin-right: 6px; }
+  .rank { display: inline-flex; align-items: center; height: 19px; padding: 0 8px; border-radius: 6px; vertical-align: middle;
+    background: var(--navy); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .01em; white-space: nowrap; }
+  .rank.sm { height: 17px; padding: 0 7px; font-size: 10.5px; background: #667085; flex: 0 0 auto; }
+  .mb-hint { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
   .mb-who { display: flex; align-items: center; gap: 9px; font-size: 14px; color: var(--ink-2); }
   .mb-who:empty { display: none; }
   .mb-who .cav { width: 26px; height: 26px; border-radius: 50%; background: var(--navy); color: #fff; display: grid; place-items: center; font-size: 10.5px; font-weight: 700; }
@@ -510,6 +518,7 @@
   .mb-note { font-size: 13.5px; line-height: 1.45; border-radius: 9px; padding: 11px 13px; }
   .mb-note.danger { color: var(--danger); background: var(--danger-bg); border: 1px solid var(--danger-br); }
   .mb-note.ok { color: var(--ok); background: var(--ok-bg); border: 1px solid var(--ok-br); display: flex; align-items: center; gap: 8px; }
+  .mb-note.info { color: #2f3bd6; background: #eef1ff; border: 1px solid #dce1ff; display: flex; align-items: center; gap: 8px; }
   .mb-note svg { flex: 0 0 auto; }
   .mb-facts { font-size: 13px; color: var(--ink-2); line-height: 1.5; }
   .mb-facts b { color: var(--ink); font-weight: 600; }
@@ -520,12 +529,44 @@
   .mb-also ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 7px; }
   .mb-also li { font-size: 13.5px; color: var(--ink-2); display: flex; align-items: center; gap: 9px; }
   .mb-also li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--warn); flex: 0 0 auto; }
+  .mb-also.resolved .h { color: var(--ink-3); }
+  .mb-also.resolved li::before { background: var(--ink-3); }
   .modal-actions { margin-top: auto; display: flex; gap: 10px; padding-top: 6px; }
   .m-btn { height: 40px; border-radius: 9px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
            padding: 0 18px; border: 1px solid var(--line); background: #fff; color: var(--ink); }
   .m-btn:hover { background: #f7f8fb; }
   .m-btn.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
   .m-btn.primary:hover { filter: brightness(1.06); }
+
+  /* ---- "Add feedback" footer (PRD idea #5) ---- */
+  .mn-foot { display: flex; align-items: center; gap: 14px; padding: 12px 30px; border-top: 1px solid var(--line-2); }
+  .feedback-btn { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 9px;
+    border: 1px solid var(--line); background: #fff; color: var(--ink-2); font-family: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+  .feedback-btn:hover { background: #f7f8fb; color: var(--ink); }
+  .foot-hint { font-size: 12.5px; color: var(--ink-3); }
+
+  /* feedback modal */
+  .fb-card { width: min(520px, 92vw); background: #fff; border-radius: 14px; overflow: hidden;
+    box-shadow: 0 32px 80px rgba(8,16,40,.45); animation: modalIn .26s cubic-bezier(.16,1,.3,1) both; }
+  .fb-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px 12px; }
+  .fb-title { font-size: 18px; font-weight: 700; color: #101828; }
+  .fb-x { width: 30px; height: 30px; border-radius: 8px; border: none; background: #f2f4f7; color: var(--ink-2); cursor: pointer; font-size: 13px; }
+  .fb-x:hover { background: #e4e7ec; }
+  .fb-body { padding: 0 22px 20px; }
+  .fb-sub { margin: 0 0 13px; font-size: 13.5px; color: var(--ink-2); line-height: 1.5; }
+  .fb-text { width: 100%; min-height: 118px; resize: vertical; border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px;
+    font-family: inherit; font-size: 14px; color: var(--ink); box-sizing: border-box; }
+  .fb-text::placeholder { color: #98a2b3; }
+  .fb-text:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(53,54,229,.12); }
+  .fb-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+
+  /* in-app confirmation toast */
+  .app-toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(10px); z-index: 150;
+    display: flex; align-items: center; gap: 9px; padding: 11px 16px; border-radius: 10px;
+    background: #101828; color: #fff; font-size: 13.5px; font-weight: 500;
+    box-shadow: 0 14px 34px rgba(0,0,0,.34); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; }
+  .app-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .app-toast svg { flex: 0 0 auto; }
 </style>
 </head>
 <body>
@@ -663,6 +704,14 @@
         </div>
         <div id="tblBody"></div>
       </div>
+
+      <footer class="mn-foot">
+        <button class="feedback-btn" id="feedbackBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3v-3H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z" stroke="#475467" stroke-width="1.7" stroke-linejoin="round"/></svg>
+          Add feedback
+        </button>
+        <span class="foot-hint">Rebar summarizes feedback across the team to improve the assignment rules.</span>
+      </footer>
     </main>
 
     <button class="back-desk" id="backDesk">
@@ -691,6 +740,27 @@
         </div>
       </div>
     </div>
+
+    <!-- Add-feedback modal (PRD idea #5) -->
+    <div class="modal-scrim" id="fbModal">
+      <div class="fb-card" role="dialog" aria-modal="true" aria-labelledby="fbTitle">
+        <div class="fb-head">
+          <div class="fb-title" id="fbTitle">Add feedback</div>
+          <button class="fb-x" id="fbClose" aria-label="Close">✕</button>
+        </div>
+        <div class="fb-body">
+          <p class="fb-sub">Flag an issue or add context on a routing decision. Rebar uses AI to summarize feedback across the team and improve the assignment rules.</p>
+          <textarea class="fb-text" id="fbText" placeholder="What worked, what didn't, or what we missed…"></textarea>
+          <div class="fb-actions">
+            <button class="m-btn" id="fbCancel">Cancel</button>
+            <button class="m-btn primary" id="fbSend">Send feedback</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- In-app confirmation toast -->
+    <div class="app-toast" id="appToast"></div>
   </div><!-- /.app-view -->
 
 <script>
@@ -1079,43 +1149,45 @@ const TODOS = [
     contractor:'Adams Mechanical', location:'Houston, TX', value:420000, duct:'Spiral',
     receiptOffset:-2, dueInDays:3, status:'need', sales:{ name:'T. Nguyen', initials:'TN' },
     routing:{
-      rec:'Healthcare specialist',
+      rec:'Healthcare specialist', rank:4,
       rule:'When Industry = Hospital or Lab, Assignment = Healthcare specialist',
       who:{ name:'Dana Brooks', initials:'DB' },
       evidence:['Building type: Hospital', 'Value: $420,000'],
-      also:['Value > $250,000 → Senior estimator', 'Spiral duct → Mark'],
+      also:[ { rank:5, txt:'Value > $250,000 → Senior estimator' }, { rank:6, txt:'Spiral duct → Mark' } ],
     } },
   { job:'26-0327', name:'Jefferson Labs Phase 2', sub:'Lab · Spiral duct',
     contractor:'Contractor X', location:'Austin, TX', value:310000, duct:'Spiral',
     receiptOffset:-3, dueInDays:4, status:'need', sales:{ name:'M. Alvarez', initials:'MA' },
     routing:{
-      rec:'Healthcare specialist',
+      rec:'Healthcare specialist', rank:4,
       rule:'When Industry = Hospital or Lab, Assignment = Healthcare specialist',
       who:{ name:'Dana Brooks', initials:'DB' },
       evidence:['Building type: Lab', 'Value: $310,000'],
-      also:['Value > $250,000 → Senior estimator', 'Spiral duct → Mark', 'Contractor X → Dallas team'],
+      also:[ { rank:5, txt:'Value > $250,000 → Senior estimator' }, { rank:6, txt:'Spiral duct → Mark' } ],
     } },
   { job:'26-0298', name:'Green Valley High School Renovation', sub:'School · North Texas',
     contractor:'Holt Construction', location:'Fort Worth, TX', value:190000, duct:'Rectangular',
     receiptOffset:-6, dueInDays:5, status:'need', sales:{ name:'J. Pierce', initials:'JP' },
     routing:{
-      rec:'Sarah',
+      rec:'Sarah', rank:3,
       rule:'When Industry = School and Region = North Texas, Assignment = Sarah',
       who:{ name:'Sarah Okafor', initials:'SO' },
       evidence:['Building type: School', 'Region: North Texas'],
-      also:['Fans + RTUs + duct accessories → Commercial applied team'],
+      also:[ { rank:7, txt:'Fans + RTUs + duct accessories → Commercial applied team' } ],
     } },
   { job:'26-0305', name:'Lakeside Retail Core & Shell', sub:'Retail · GRD-only',
     contractor:'Northstar Builders', location:'Dallas, TX', value:18000, duct:'Rectangular',
     receiptOffset:-1, dueInDays:10, status:'finished', assignedBy:'auto', sales:{ name:'K. Webb', initials:'KW' },
     routing:{
-      rec:'Bob',
+      rec:'Bob', rank:8,
       rule:'When Equipment = GRD-only and Value < $25,000, Assignment = Bob',
       who:{ name:'Bob Tran', initials:'BT' },
       evidence:['Equipment: GRD-only', 'Value: $18,000'],
       also:[],
     } },
 ];
+
+const RECEIPT_DATE = new Date(2026, 5, 24);   // every bid shown as received Jun 24, 2026
 
 function renderTodos(){
   const today = simToday();
@@ -1124,7 +1196,6 @@ function renderTodos(){
     .filter(({ t }) => (t.status || 'need') === activeTab);
 
   document.getElementById('tblBody').innerHTML = rows.map(({ t, i }) => {
-    const receipt = addDays(REAL_TODAY, t.receiptOffset);
     const due     = addDays(REAL_TODAY, t.dueInDays);
     const daysOut = Math.round((startOfDay(due) - today) / DAY);
     const urgent  = daysOut <= 3;                                  // same rule as the toast
@@ -1135,19 +1206,19 @@ function renderTodos(){
     const urgentPill = urgent
       ? `<span class="urgent-pill"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M12 8v5l3 2" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="#fff" stroke-width="2"/></svg>Urgent</span>`
       : '';
-    // "Need to assign": nothing assigned yet -> blank. "Finished assigning": show who it went to.
+    // "Need to assign": nothing assigned yet -> blank. "Finished assigning": show who it went to + how.
     let est = '';
     if (activeTab === 'finished' && t.routing.who){
-      const auto = t.assignedBy === 'auto'
+      const pill = t.assignedBy === 'auto'
         ? `<span class="auto-pill"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4 4 10-10" stroke="#027a48" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Autoassigned</span>`
-        : '';
-      est = `<span class="chip"><span class="cav">${t.routing.who.initials}</span><span class="cnm">${t.routing.who.name}</span></span>${auto}`;
+        : `<span class="assigned-pill"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4 4 10-10" stroke="#2f3bd6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Assigned</span>`;
+      est = `<span class="chip"><span class="cav">${t.routing.who.initials}</span><span class="cnm">${t.routing.who.name}</span></span>${pill}`;
     }
     return `
       <div class="trow" data-i="${i}" title="View routing rationale">
         <div class="c-job">${t.job}</div>
         <div class="c-name"><div class="nm">${t.name}${urgentPill}</div><div class="sub">${t.sub}</div></div>
-        <div class="c-date">${fmtMD(receipt)}</div>
+        <div class="c-date">${fmtMD(RECEIPT_DATE)}</div>
         <div class="c-due ${urgent?'urgent':''}">${fmtMD(due)}<span class="due-sub">${dueSub}</span></div>
         <div class="c-est">${est}</div>
         <div>${sales}</div>
@@ -1174,9 +1245,18 @@ document.getElementById('tabFinished').onclick = () => setTab('finished');
 
 /* ---- routing recommendation modal (per job) ---- */
 const jobModal = document.getElementById('jobModal');
+let openJobIndex = null;
+function okNote(txt){
+  return `<div class="mb-note ok"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#027a48" stroke-width="1.8"/><path d="M8 12.5l2.5 2.5L16 9" stroke="#027a48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>${txt}</span></div>`;
+}
+function infoNote(txt){
+  return `<div class="mb-note info"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#2f3bd6" stroke-width="1.8"/><path d="M8 12.5l2.5 2.5L16 9" stroke="#2f3bd6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>${txt}</span></div>`;
+}
 function openJobModal(i){
+  openJobIndex = i;
   const t = TODOS[i], r = t.routing;
   const finished = t.status === 'finished';
+  const auto = t.assignedBy === 'auto';
   const due = addDays(REAL_TODAY, t.dueInDays);
   const daysOut = Math.round((startOfDay(due) - simToday()) / DAY);
   const urgent = daysOut <= 3;
@@ -1185,31 +1265,37 @@ function openJobModal(i){
 
   document.getElementById('jmJob').textContent = `${t.name} · #${t.job}`;
   document.getElementById('jmRec').innerHTML = finished
-    ? `Autoassigned: <b>${r.who ? r.who.name : r.rec}</b>`
+    ? `${auto ? 'Autoassigned' : 'Assigned'}: <b>${r.who ? r.who.name : r.rec}</b>`
     : `Recommended assignment: <b>${r.rec}</b>`;
   document.getElementById('jmFacts').innerHTML =
     `${t.contractor} · ${t.location} · <b>${money(t.value)}</b> · ${t.duct} duct · ` +
     `<span class="${urgent ? 'due-em' : ''}">${dueLabel}</span>`;
-  document.getElementById('jmRule').innerHTML = `<span class="lab">Rule:</span><b>${r.rule}</b>`;
+  const rankBadge = r.rank ? `<span class="rank">Rank ${r.rank}</span>` : '';
+  document.getElementById('jmRule').innerHTML = `${rankBadge}<span class="lab">Rule:</span><b>${r.rule}</b>`;
   document.getElementById('jmWho').innerHTML = (!finished && r.who)
     ? `<span class="cav">${r.who.initials}</span><span>Suggested estimator: <b>${r.who.name}</b></span>` : '';
   document.getElementById('jmEvi').innerHTML = (r.evidence || []).map(e => `<span class="evi">${e}</span>`).join('');
 
   const extra = document.getElementById('jmExtra');
-  if (r.hardGate){
-    extra.innerHTML = `<div class="mb-note danger">Hard gate — this overrides every other rule. Federal work always holds for manual review.</div>`;
-  } else if (r.also && r.also.length){
-    extra.innerHTML =
-      `<div class="mb-also"><div class="h">` +
-      `<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 4l9 16H3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 10v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>` +
-      `Also matched — your call</div><ul>${r.also.map(a => `<li>${a}</li>`).join('')}</ul></div>`;
-  } else {
-    const txt = finished
-      ? 'Autoassigned because every matching rule points to the same estimator — no conflicts to resolve.'
-      : 'Only one rule matched — no conflicts, high confidence.';
-    extra.innerHTML =
-      `<div class="mb-note ok"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#027a48" stroke-width="1.8"/><path d="M8 12.5l2.5 2.5L16 9" stroke="#027a48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>${txt}</span></div>`;
+  let html = '';
+  if (finished){
+    html += auto
+      ? okNote('Autoassigned because every matching rule points to the same estimator — no conflicts to resolve.')
+      : infoNote('Assigned by the bid coordinator — recommendation accepted.');
   }
+  if (r.hardGate){
+    html += `<div class="mb-note danger">Hard gate — this overrides every other rule. Federal work always holds for manual review.</div>`;
+  } else if (r.also && r.also.length){
+    const header = finished ? 'Other rules that matched' : 'Also matched — your call';
+    const items  = r.also.map(a => `<li><span class="rank sm">Rank ${a.rank}</span>${a.txt}</li>`).join('');
+    const hint   = finished ? '' : `<div class="mb-hint">Lower rank = higher priority, so the Rank ${r.rank} rule above is recommended.</div>`;
+    html += `<div class="mb-also${finished ? ' resolved' : ''}"><div class="h">` +
+      `<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 4l9 16H3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 10v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>` +
+      `${header}</div><ul>${items}</ul>${hint}</div>`;
+  } else if (!finished){
+    html += okNote('Only one rule matched — no conflicts, high confidence.');
+  }
+  extra.innerHTML = html;
 
   document.getElementById('jmConfirm').textContent  = finished ? 'Done' : 'Confirm assignment';
   document.getElementById('jmOverride').textContent = finished ? 'Reassign…' : 'Override…';
@@ -1217,11 +1303,53 @@ function openJobModal(i){
   jobModal.classList.add('show');
 }
 function closeJobModal(){ jobModal.classList.remove('show'); }
-document.getElementById('jmClose').onclick    = closeJobModal;
-document.getElementById('jmConfirm').onclick  = closeJobModal;
-document.getElementById('jmOverride').onclick = closeJobModal;
+document.getElementById('jmClose').onclick = closeJobModal;
+document.getElementById('jmConfirm').onclick = () => {       // "Confirm assignment" (need) / "Done" (finished)
+  const t = TODOS[openJobIndex];
+  if (t && t.status !== 'finished'){
+    t.status = 'finished'; t.assignedBy = 'coordinator';
+    const who = t.routing.who ? t.routing.who.name : t.routing.rec;
+    closeJobModal(); renderTodos();
+    showAppToast(`${t.name} assigned to ${who} — moved to Finished assigning`);
+  } else {
+    closeJobModal();
+  }
+};
+document.getElementById('jmOverride').onclick = () => {      // "Override…" (need) / "Reassign…" (finished)
+  const t = TODOS[openJobIndex];
+  if (t && t.status === 'finished'){
+    t.status = 'need'; t.assignedBy = null;
+    closeJobModal(); renderTodos();
+    showAppToast(`${t.name} returned to Need to assign`);
+  } else {
+    closeJobModal();
+  }
+};
 jobModal.addEventListener('click', e => { if (e.target === jobModal) closeJobModal(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeJobModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeJobModal(); closeFb(); } });
+
+/* ---- in-app confirmation toast ---- */
+let appToastTimer;
+function showAppToast(msg){
+  const el = document.getElementById('appToast');
+  el.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#41d18f" stroke-width="1.9"/><path d="M8 12.5l2.5 2.5L16 9" stroke="#41d18f" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg><span>${msg}</span>`;
+  el.classList.add('show');
+  clearTimeout(appToastTimer);
+  appToastTimer = setTimeout(() => el.classList.remove('show'), 3300);
+}
+
+/* ---- add-feedback modal ---- */
+const fbModal = document.getElementById('fbModal');
+function closeFb(){ fbModal.classList.remove('show'); }
+document.getElementById('feedbackBtn').onclick = () => {
+  document.getElementById('fbText').value = '';
+  fbModal.classList.add('show');
+  setTimeout(() => document.getElementById('fbText').focus(), 60);
+};
+document.getElementById('fbClose').onclick  = closeFb;
+document.getElementById('fbCancel').onclick = closeFb;
+document.getElementById('fbSend').onclick   = () => { closeFb(); showAppToast('Thanks — your feedback was sent to Rebar.'); };
+fbModal.addEventListener('click', e => { if (e.target === fbModal) closeFb(); });
 
 function openApp(){ setTab('need'); document.getElementById('appView').classList.add('show'); }
 function closeApp(){ document.getElementById('appView').classList.remove('show'); }
