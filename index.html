@@ -673,7 +673,7 @@
   .rules-h1 { font-size: 22px; font-weight: 700; color: #101828; }
   .rules-sub { font-size: 13.5px; color: var(--ink-2); margin-top: 4px; max-width: 660px; line-height: 1.5; }
   .rules-title-row .m-btn { margin-left: auto; flex: 0 0 auto; }
-  .add-cat { margin-bottom: 14px; }
+  .add-cat { margin-bottom: 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
   .add-cat select { height: 40px; min-width: 230px; border: 1px solid var(--line); border-radius: 9px; padding: 0 12px; font-family: inherit; font-size: 13.5px; color: var(--blue); font-weight: 600; background: #fff; cursor: pointer; }
 
   .rules-table { border: 1px solid var(--line-2); border-radius: 12px; overflow: hidden; max-width: 1000px; }
@@ -1387,6 +1387,7 @@ function showPage(name){
   document.getElementById('mnTitle').textContent =
     (name === 'settings' || name === 'rules') ? 'Settings' : 'Bid Coordination';
   document.querySelectorAll('.nav-i[data-page]').forEach(n => n.classList.toggle('sel', n.dataset.page === navName));
+  if (name === 'coordination') renderTodos();
   if (name === 'settings') renderSettings();
   if (name === 'rules') renderRules();
 }
@@ -1443,13 +1444,8 @@ const TODOS = [
       subject:'Invitation to Bid — Memorial West Expansion (Patient Tower)',
       body:'Hi team — attaching the plan set for the Memorial West Expansion patient tower in Houston. Hospital project, spiral ductwork; equipment is AHUs, VAVs, and fans. Estimated equipment value ~$420k. Bid is due in 3 days. Let us know if anything is unclear. — Adams Mechanical Estimating' },
     receiptOffset:-2, dueInDays:3, status:'need', sales:{ name:'T. Nguyen', initials:'TN' },
-    routing:{
-      rec:'Healthcare specialist', rank:4,
-      rule:'When Industry = Hospital or Lab, Assignment = Healthcare specialist',
-      who:{ name:'Dana Brooks', initials:'DB' },
-      evidence:['Building type: Hospital', 'Value: $420,000'],
-      also:[ { rank:5, txt:'Value > $250,000 → Senior estimator' }, { rank:6, txt:'Spiral duct → Mark' } ],
-    } },
+    matches:['Industry', 'Bid value', 'Duct type'],
+    evidence:['Building type: Hospital', 'Value: $420,000'] },
   { job:'26-0327', name:'Jefferson Labs Phase 2', sub:'Lab · Spiral duct',
     contractor:'Contractor X', location:'Austin, TX', value:310000, duct:'Spiral',
     buildingType:'Lab', equipment:'Exhaust fans, MAUs, GRDs', branch:'Austin', existingEstimator:'None',
@@ -1458,13 +1454,8 @@ const TODOS = [
       subject:'Bid set — Jefferson Labs Phase 2',
       body:'Plan set attached for Jefferson Labs Phase 2 in Austin. Laboratory build-out, spiral duct; exhaust fans, MAUs, and GRDs. Estimated equipment value ~$310k. Due in 4 days. Thanks.' },
     receiptOffset:-3, dueInDays:4, status:'need', sales:{ name:'M. Alvarez', initials:'MA' },
-    routing:{
-      rec:'Healthcare specialist', rank:4,
-      rule:'When Industry = Hospital or Lab, Assignment = Healthcare specialist',
-      who:{ name:'Dana Brooks', initials:'DB' },
-      evidence:['Building type: Lab', 'Value: $310,000'],
-      also:[ { rank:5, txt:'Value > $250,000 → Senior estimator' }, { rank:6, txt:'Spiral duct → Mark' } ],
-    } },
+    matches:['Industry', 'Bid value', 'Duct type'],
+    evidence:['Building type: Lab', 'Value: $310,000'] },
   { job:'26-0298', name:'Green Valley High School Renovation', sub:'School · North Texas',
     contractor:'Holt Construction', location:'Fort Worth, TX', value:190000, duct:'Rectangular',
     buildingType:'School', equipment:'RTUs, fans, duct accessories', branch:'North Texas', existingEstimator:'None',
@@ -1473,13 +1464,8 @@ const TODOS = [
       subject:'Green Valley High School Renovation — plans',
       body:'Drawings attached for the Green Valley High School renovation in Fort Worth. RTUs, fans, and duct accessories; rectangular duct. Estimated equipment value ~$190k. Due in 5 days.' },
     receiptOffset:-6, dueInDays:5, status:'need', sales:{ name:'J. Pierce', initials:'JP' },
-    routing:{
-      rec:'Sarah', rank:3,
-      rule:'When Industry = School and Region = North Texas, Assignment = Sarah',
-      who:{ name:'Sarah Okafor', initials:'SO' },
-      evidence:['Building type: School', 'Region: North Texas'],
-      also:[ { rank:7, txt:'Fans + RTUs + duct accessories → Commercial applied team' } ],
-    } },
+    matches:['Industry + Location', 'Equipment type'],
+    evidence:['Building type: School', 'Region: North Texas'] },
   { job:'26-0451', name:'Crestwood Medical Pavilion', sub:'Building type unclear · Rectangular duct',
     contractor:'Beacon Construction', location:'San Antonio, TX', value:280000, duct:'Rectangular',
     buildingType:'Hospital (inferred)', equipment:'RTUs, exhaust fans (partial)', branch:'San Antonio', existingEstimator:'None',
@@ -1492,13 +1478,8 @@ const TODOS = [
       subject:'Bid — Crestwood Medical Pavilion (partial set)',
       body:'Attaching what we have so far for the Crestwood Medical Pavilion in San Antonio. Heads up: the equipment schedule pages came through partially legible and the building program isn’t fully spelled out yet. Rectangular duct; approx. $280k equipment. Bid due in 6 days — full set to follow.' },
     receiptOffset:0, dueInDays:6, status:'need', sales:{ name:'D. Park', initials:'DP' },
-    routing:{
-      rec:'Healthcare specialist', rank:4,
-      rule:'When Industry = Hospital or Lab, Assignment = Healthcare specialist',
-      who:{ name:'Dana Brooks', initials:'DB' },
-      evidence:['Building type: Hospital (inferred)', 'Value: $280,000'],
-      also:[ { rank:5, txt:'Value > $250,000 → Senior estimator' } ],
-    } },
+    matches:['Industry', 'Bid value'],
+    evidence:['Building type: Hospital (inferred)', 'Value: $280,000'] },
   { job:'26-0305', name:'Lakeside Retail Core & Shell', sub:'Retail · GRD-only',
     contractor:'Northstar Builders', location:'Dallas, TX', value:18000, duct:'Rectangular',
     buildingType:'Retail', equipment:'GRDs (grilles/registers/diffusers) only', branch:'Dallas', existingEstimator:'None',
@@ -1507,13 +1488,8 @@ const TODOS = [
       subject:'Bid request — Lakeside Retail Core & Shell',
       body:'Attaching the Lakeside Retail core & shell package in Dallas. GRD-only, rectangular duct. Estimated equipment value ~$18k. Due in 10 days.' },
     receiptOffset:-1, dueInDays:10, status:'finished', assignedBy:'auto', sales:{ name:'K. Webb', initials:'KW' },
-    routing:{
-      rec:'Bob', rank:8,
-      rule:'When Equipment = GRD-only and Value < $25,000, Assignment = Bob',
-      who:{ name:'Bob Tran', initials:'BT' },
-      evidence:['Equipment: GRD-only', 'Value: $18,000'],
-      also:[],
-    } },
+    matches:['Equipment type + Dollar amount'],
+    evidence:['Equipment: GRD-only', 'Value: $18,000'] },
 ];
 
 const RECEIPT_DATE = new Date(2026, 5, 24);   // every bid shown as received Jun 24, 2026
@@ -1548,7 +1524,7 @@ function renderTodos(){
       : '';
     // "Need to assign": nothing assigned yet -> blank. "Finished assigning": show who it went to + how.
     let est = '';
-    const who = t.assignedTo || t.routing.who;
+    const who = t.assignedTo || computeRouting(t).who;
     if (activeTab === 'finished' && who){
       let pill;
       if (t.assignedBy === 'auto')
@@ -1603,7 +1579,7 @@ function dangerNote(txt){
 }
 function openJobModal(i){
   openJobIndex = i;
-  const t = TODOS[i], r = t.routing;
+  const t = TODOS[i], r = computeRouting(t);
   const finished = t.status === 'finished';
   const auto = t.assignedBy === 'auto';
   const due = addDays(REAL_TODAY, t.dueInDays);
@@ -1624,7 +1600,7 @@ function openJobModal(i){
   document.getElementById('jmRule').innerHTML = `${rankBadge}<span class="lab">Rule:</span><b>${r.rule}</b>`;
   document.getElementById('jmWho').innerHTML = (!finished && r.who)
     ? `<span class="cav">${r.who.initials}</span><span>Suggested estimator: <b>${r.who.name}</b></span>` : '';
-  document.getElementById('jmEvi').innerHTML = (r.evidence || []).map(e => `<span class="evi">${e}</span>`).join('');
+  document.getElementById('jmEvi').innerHTML = (t.evidence || []).map(e => `<span class="evi">${e}</span>`).join('');
 
   const extra = document.getElementById('jmExtra');
   let html = '';
@@ -1645,8 +1621,8 @@ function openJobModal(i){
     }
     else html += infoNote('Assigned by the bid coordinator — recommendation accepted.');
   }
-  if (r.hardGate){
-    html += `<div class="mb-note danger">Hard gate — this overrides every other rule. Federal work always holds for manual review.</div>`;
+  if (r.manual){
+    html += dangerNote('No configured rule matched this job — it routes to the bid coordinator for manual assignment.');
   } else if (r.also && r.also.length){
     const header = finished ? 'Other rules that matched' : 'Also matched — your call';
     const items  = r.also.map(a => `<li><span class="rank sm">Rank ${a.rank}</span>${a.txt}</li>`).join('');
@@ -1667,9 +1643,11 @@ document.getElementById('jmClose').onclick = closeJobModal;
 document.getElementById('jmConfirm').onclick = () => {       // "Confirm assignment" (need) / "Done" (finished)
   const t = TODOS[openJobIndex];
   if (t && t.status !== 'finished'){
-    t.assignedTo = t.routing.who ? { name:t.routing.who.name, initials:t.routing.who.initials, role:t.routing.rec } : null;
+    const cr = computeRouting(t);
+    t.assignedTo = cr.who ? { name:cr.who.name, initials:cr.who.initials, role:cr.who.role }
+                          : { name:cr.rec, initials:initialsOf(cr.rec), role:'' };
     t.assignedBy = 'coordinator'; t.override = false; t.status = 'finished';
-    const who = t.assignedTo ? t.assignedTo.name : t.routing.rec;
+    const who = t.assignedTo.name;
     closeJobModal(); renderTodos();
     showAppToast(`${t.name} assigned to ${who} — moved to Finished assigning`);
   } else {
@@ -1719,7 +1697,7 @@ const pickModal = document.getElementById('pickModal');
 let pickIndex = null;
 function openPicker(i){
   pickIndex = i;
-  const t = TODOS[i], r = t.routing;
+  const t = TODOS[i], r = computeRouting(t);
   const current = (t.status === 'finished') ? (t.assignedTo || r.who) : r.who;
   document.getElementById('pickSub').textContent = `${t.name} · recommended: ${r.who ? r.who.name : r.rec}`;
   document.getElementById('pickList').innerHTML = ESTIMATORS.map((e, idx) => {
@@ -1746,7 +1724,7 @@ function updatePickBtn(){
   const reasonText = document.getElementById('pickReasonText');
   if (!sel){ btn.disabled = true; btn.textContent = 'Assign'; reasonWrap.classList.remove('show'); return; }
   const chosen = ESTIMATORS[+sel.value];
-  const recWho = TODOS[pickIndex].routing.who;
+  const recWho = computeRouting(TODOS[pickIndex]).who;
   const isOverride = !(recWho && chosen.name === recWho.name);    // chose someone other than the recommendation
   reasonWrap.classList.toggle('show', isOverride);
   const needsText = /please specify/i.test(reasonSel.value);      // reason code asks the user to specify
@@ -1765,7 +1743,7 @@ document.getElementById('pickAssign').onclick = () => {
   const chosen = ESTIMATORS[+sel.value];
   const t = TODOS[pickIndex];
   const wasNeed = t.status === 'need';
-  const isOverride = !(t.routing.who && chosen.name === t.routing.who.name);
+  const isOverride = !(computeRouting(t).who && chosen.name === computeRouting(t).who.name);
   if (isOverride){                                                              // guard: need a reason (+ text if it says "please specify")
     const rv = document.getElementById('pickReasonSel').value;
     const needsText = /please specify/i.test(rv);
@@ -1876,6 +1854,29 @@ let rules = [];                 // [{ cat, criteria, assign }] in priority (rank
 const ADMIN_PW = 'rebar';
 const exceptionRow = `<div class="rt-exception"><b>Exception</b> · Doesn't fit the rules cleanly → Bid coordinator manually assigns the bid.</div>`;
 
+/* The routing engine: each job's recommendation is computed live against the
+   ACTIVE hierarchy — the saved rules once created, the PRD defaults until then.
+   A job matches a category by its `matches` list; the highest-ranked match wins. */
+function activeHierarchy(){ return rulesCreated ? rules : RULE_CATALOG; }
+function whoFor(assign){ const e = ESTIMATORS.find(x => x.name === assign); return e ? { name:e.name, initials:e.initials, role:e.role } : null; }
+function computeRouting(job){
+  const matched = activeHierarchy()
+    .map((r, i) => ({ rank:i+1, cat:r.cat, criteria:r.criteria, assign:r.assign }))
+    .filter(r => (job.matches || []).includes(r.cat));
+  if (!matched.length)
+    return { manual:true, rec:'Manual review', rank:null,
+             rule:'No configured rule matched — Exception routes to the bid coordinator.', who:null, also:[] };
+  const top = matched[0], who = whoFor(top.assign);
+  return {
+    manual:false,
+    rec: who ? who.name : assignLabel(top.assign),
+    rank: top.rank,
+    rule: `When ${top.cat} = ${top.criteria}`,
+    who,
+    also: matched.slice(1).map(m => ({ rank:m.rank, txt:`${m.criteria} → ${assignLabel(m.assign)}` })),
+  };
+}
+
 function renderRules(){ rulesCreated ? renderRulesView() : renderRulesBuilder(); }
 
 function renderRulesBuilder(){
@@ -1905,7 +1906,10 @@ function renderRulesBuilder(){
       </div>
       <button class="m-btn primary" id="rulesSave" ${rules.length?'':'disabled'}>Save hierarchy</button>
     </div>
-    <div class="add-cat"><select id="addCatSel"><option value="">＋ Add category…</option>${remaining}</select></div>
+    <div class="add-cat">
+      <select id="addCatSel"><option value="">＋ Add category…</option>${remaining}</select>
+      <button class="m-btn" id="loadExample">Load full PRD example</button>
+    </div>
     ${table}`;
 }
 
@@ -1955,7 +1959,8 @@ rulesWrap.addEventListener('change', e => {
 rulesWrap.addEventListener('click', e => {
   const btn = e.target.closest('button'); if (!btn) return;
   if (btn.id === 'rulesBack') showPage('settings');
-  else if (btn.id === 'rulesSave') { rulesCreated = true; renderRules(); showAppToast('Bid assignment rules saved.'); }
+  else if (btn.id === 'loadExample') { rules = RULE_CATALOG.map(c => ({ ...c })); renderRules(); }
+  else if (btn.id === 'rulesSave') { rulesCreated = true; renderRules(); renderTodos(); showAppToast('Bid assignment rules saved — now driving routing.'); }
   else if (btn.id === 'rulesEdit') openPwModal();
   else if (btn.dataset.act) handleRowAction(btn.dataset.act, +btn.dataset.i);
 });
