@@ -686,8 +686,40 @@
   .rt-row > div { padding: 11px 12px; font-size: 13.5px; color: #1d2939; }
   .rt-rank span { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 7px; background: var(--navy); color: #fff; font-size: 12.5px; font-weight: 800; }
   .rt-cat { font-weight: 600; color: #101828; }
-  .rt-input, .rt-select { width: 100%; height: 34px; border: 1px solid var(--line); border-radius: 8px; padding: 0 9px; font-family: inherit; font-size: 13px; color: var(--ink); background: #fff; box-sizing: border-box; }
-  .rt-input:focus, .rt-select:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(53,54,229,.12); }
+  .rt-input, .rt-select, .rt-catsel, .rt-crit, .rt-asg, .rt-urg-num, .rt-urg-unit {
+    height: 34px; border: 1px solid var(--line); border-radius: 8px; padding: 0 9px; font-family: inherit; font-size: 13px; color: var(--ink); background: #fff; box-sizing: border-box; }
+  .rt-input, .rt-select { width: 100%; }
+  .rt-input:focus, .rt-select:focus, .rt-catsel:focus, .rt-crit:focus, .rt-asg:focus, .rt-urg-num:focus, .rt-urg-unit:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(53,54,229,.12); }
+
+  /* multi-condition rank rows (builder + view) */
+  .rt-rank-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-bottom: 1px solid var(--line-2); }
+  .rt-rank-row .rt-rank { flex: 0 0 40px; padding-top: 3px; }
+  .rt-conds { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+  .rt-cond { display: flex; gap: 10px; align-items: center; }
+  .rt-catsel { flex: 0 0 188px; cursor: pointer; }
+  .rt-crit { flex: 1 1 auto; min-width: 0; }
+  .rt-urgent { flex: 1 1 auto; display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .rt-urg-lbl { font-size: 13px; color: var(--ink-2); white-space: nowrap; }
+  .rt-urg-num { flex: 0 0 72px; width: 72px; }
+  .rt-urg-unit { flex: 0 0 112px; width: 112px; cursor: pointer; }
+  .rt-assign { flex: 0 0 224px; }
+  .rt-asg { width: 100%; cursor: pointer; }
+  .rt-rank-row .rt-actions { flex: 0 0 auto; padding: 0; }
+
+  .rt-head2 { display: flex; gap: 12px; padding: 11px 12px; background: #f9fafb; border-bottom: 1px solid var(--line-2); }
+  .rt-head2 div { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #98a2b3; }
+  .hh-rank { flex: 0 0 40px; }
+  .hh-conds { flex: 1 1 auto; display: flex; gap: 10px; }
+  .hh-cat { flex: 0 0 188px; }
+  .hh-crit { flex: 1 1 auto; }
+  .hh-assign { flex: 0 0 224px; }
+  .hh-act { flex: 0 0 84px; }
+
+  .rt-rank-row.view .rt-cond-view { display: flex; gap: 10px; align-items: baseline; padding: 3px 0; }
+  .cv-cat { flex: 0 0 188px; font-weight: 600; color: #101828; font-size: 13.5px; }
+  .cv-crit { flex: 1 1 auto; font-size: 13.5px; color: #1d2939; }
+  .rt-rank-row.view .rt-assign { font-size: 13.5px; color: #1d2939; padding-top: 3px; }
+  .add-rank { color: var(--blue); border-color: #dce1ff; font-weight: 700; }
   .rt-actions { display: flex; gap: 3px; padding: 8px 6px; }
   .rt-actions button { width: 26px; height: 26px; border: 1px solid var(--line); background: #fff; border-radius: 6px; cursor: pointer; color: var(--ink-2); font-size: 13px; display: grid; place-items: center; }
   .rt-actions button:hover { background: #f2f4f7; }
@@ -1830,15 +1862,19 @@ function closeApp(){ document.getElementById('appView').classList.remove('show')
 document.getElementById('backDesk').onclick = closeApp;
 
 /* ---------- Bid Assignment Rules page (PRD idea #4) ---------- */
-const RULE_CATALOG = [
-  { cat:'Addendum-only',                  criteria:'Addendum-only',                  assign:'__original' },
-  { cat:'Urgent + Design/build',          criteria:'Deadline within 3 days',         assign:'__versatile' },
-  { cat:'Industry + Location',            criteria:'School + North Texas',           assign:'Sarah Okafor' },
-  { cat:'Industry',                       criteria:'Hospital or lab',                assign:'Dana Brooks' },
-  { cat:'Bid value',                      criteria:'Above $250,000',                 assign:'Greg Olsen' },
-  { cat:'Duct type',                      criteria:'Spiral duct',                    assign:'Mark Reyes' },
-  { cat:'Equipment type',                 criteria:'Fans + RTUs + duct accessories', assign:'Tom Walsh' },
-  { cat:'Equipment type + Dollar amount', criteria:'GRD-only + under $25,000',       assign:'Bob Tran' },
+const CATEGORIES = ['Addendum-only', 'Urgent', 'Design/build', 'Industry', 'Location', 'Bid value', 'Duct type', 'Equipment type'];
+
+/* Example hierarchy (the PRD rank table) — each rank is one or more conditions
+   that share a single assignment. */
+const RULE_EXAMPLE = [
+  { conditions:[{ category:'Addendum-only', criteria:'Addendum-only' }], assign:'__original' },
+  { conditions:[{ category:'Urgent', amount:'3', unit:'days' }, { category:'Design/build', criteria:'Design/build project' }], assign:'__versatile' },
+  { conditions:[{ category:'Industry', criteria:'School' }, { category:'Location', criteria:'North Texas' }], assign:'Sarah Okafor' },
+  { conditions:[{ category:'Industry', criteria:'Hospital or lab' }], assign:'Dana Brooks' },
+  { conditions:[{ category:'Bid value', criteria:'Above $250,000' }], assign:'Greg Olsen' },
+  { conditions:[{ category:'Duct type', criteria:'Spiral duct' }], assign:'Mark Reyes' },
+  { conditions:[{ category:'Equipment type', criteria:'Fans + RTUs + duct accessories' }], assign:'Tom Walsh' },
+  { conditions:[{ category:'Equipment type', criteria:'GRD-only' }, { category:'Bid value', criteria:'Under $25,000' }], assign:'Bob Tran' },
 ];
 const ASSIGN_OPTIONS = [
   { value:'__original',    label:'Original estimator (if one exists)' },
@@ -1847,80 +1883,121 @@ const ASSIGN_OPTIONS = [
   { value:'__coordinator', label:'Bid coordinator — manual review' },
 ];
 const assignLabel = v => (ASSIGN_OPTIONS.find(o => o.value === v) || { label:v }).label;
-const assignOptionsHtml = sel => ASSIGN_OPTIONS.map(o => `<option value="${o.value}" ${o.value===sel?'selected':''}>${o.label}</option>`).join('');
+const assignOptionsHtml = sel => `<option value="">Assign to…</option>` +
+  ASSIGN_OPTIONS.map(o => `<option value="${o.value}" ${o.value===sel?'selected':''}>${o.label}</option>`).join('');
 
 let rulesCreated = false;
-let rules = [];                 // [{ cat, criteria, assign }] in priority (rank) order
+let rules = [];                 // [{ conditions:[{category, criteria, amount, unit}], assign }] in rank order
 const ADMIN_PW = 'rebar';
 const exceptionRow = `<div class="rt-exception"><b>Exception</b> · Doesn't fit the rules cleanly → Bid coordinator manually assigns the bid.</div>`;
 
-/* The routing engine: each job's recommendation is computed live against the
-   ACTIVE hierarchy — the saved rules once created, the PRD defaults until then.
-   A job matches a category by its `matches` list; the highest-ranked match wins. */
-function activeHierarchy(){ return rulesCreated ? rules : RULE_CATALOG; }
+/* ---- routing engine: recommendation is computed live against the ACTIVE
+   hierarchy (saved rules once created, PRD defaults until then). A rank matches
+   a job only if ALL of its conditions match; the highest-ranked match wins. ---- */
+const condCriteria = c => c.category === 'Urgent'
+  ? `Deadline within ${c.amount || '?'} ${c.unit || 'days'}` : (c.criteria || '');
 function whoFor(assign){ const e = ESTIMATORS.find(x => x.name === assign); return e ? { name:e.name, initials:e.initials, role:e.role } : null; }
+function activeHierarchy(){ return rulesCreated ? rules : RULE_EXAMPLE; }
+function matchCondition(c, job, daysOut){
+  const crit = (c.criteria || '').toLowerCase();
+  switch (c.category){
+    case 'Addendum-only': return !!job.addendum;
+    case 'Urgent': { const n = parseFloat(c.amount); if (!(n > 0)) return false;
+      const days = c.unit === 'hours' ? n/24 : c.unit === 'minutes' ? n/1440 : n; return daysOut <= days; }
+    case 'Design/build': return !!job.designBuild;
+    case 'Industry': { const opts = crit.split(/\bor\b|,|\+/).map(s => s.trim()).filter(Boolean);
+      const bt = (job.buildingType || '').toLowerCase(); return opts.some(o => bt.includes(o)); }
+    case 'Location': { const loc = `${job.branch || ''} ${job.location || ''}`.toLowerCase(); return crit ? loc.includes(crit) : false; }
+    case 'Bid value': { const m = crit.replace(/[,$]/g,'').match(/(above|over|under|below|less|greater)?\s*([\d.]+)/);
+      if (!m) return false; const thr = parseFloat(m[2]); const under = /under|below|less/.test(m[1] || '');
+      return under ? job.value < thr : job.value > thr; }
+    case 'Duct type': { const word = crit.replace('duct', '').trim(); return word ? (job.duct || '').toLowerCase().includes(word) : false; }
+    case 'Equipment type': { const eq = (job.equipment || '').toLowerCase();
+      if (/grd[\s-]*only/.test(crit)) return eq.includes('grd') && eq.includes('only');
+      const toks = crit.split('+').map(s => s.trim()).filter(Boolean);
+      return toks.length ? toks.every(t => eq.includes(t.split(' ')[0])) : false; }
+  }
+  return false;
+}
+function rankMatches(rank, job, daysOut){ return rank.conditions.length > 0 && rank.conditions.every(c => matchCondition(c, job, daysOut)); }
 function computeRouting(job){
+  const daysOut = Math.round((startOfDay(addDays(REAL_TODAY, job.dueInDays)) - simToday()) / DAY);
   const matched = activeHierarchy()
-    .map((r, i) => ({ rank:i+1, cat:r.cat, criteria:r.criteria, assign:r.assign }))
-    .filter(r => (job.matches || []).includes(r.cat));
+    .map((r, i) => ({ rank:i+1, conditions:r.conditions, assign:r.assign }))
+    .filter(r => rankMatches(r, job, daysOut));
   if (!matched.length)
     return { manual:true, rec:'Manual review', rank:null,
              rule:'No configured rule matched — Exception routes to the bid coordinator.', who:null, also:[] };
   const top = matched[0], who = whoFor(top.assign);
   return {
     manual:false,
-    rec: who ? who.name : assignLabel(top.assign),
+    rec: who ? who.name : (assignLabel(top.assign) || 'Unassigned'),
     rank: top.rank,
-    rule: `When ${top.cat} = ${top.criteria}`,
+    rule: 'When ' + top.conditions.map(c => `${c.category} = ${condCriteria(c)}`).join(' and '),
     who,
-    also: matched.slice(1).map(m => ({ rank:m.rank, txt:`${m.criteria} → ${assignLabel(m.assign)}` })),
+    also: matched.slice(1).map(m => ({ rank:m.rank, txt:`${m.conditions.map(condCriteria).join(' + ')} → ${assignLabel(m.assign)}` })),
   };
 }
 
 function renderRules(){ rulesCreated ? renderRulesView() : renderRulesBuilder(); }
 
+const categoryOptionsHtml = sel => `<option value="">Select a category</option>` +
+  CATEGORIES.map(c => `<option ${c===sel?'selected':''}>${c}</option>`).join('');
+function criteriaFieldHtml(ri, ci, c){
+  if (c.category === 'Urgent')
+    return `<div class="rt-urgent">
+      <span class="rt-urg-lbl">Deadline within</span>
+      <input type="number" min="1" class="rt-urg-num" data-r="${ri}" data-c="${ci}" value="${c.amount || ''}" placeholder="#">
+      <select class="rt-urg-unit" data-r="${ri}" data-c="${ci}">
+        <option ${c.unit==='days'?'selected':''}>days</option>
+        <option ${c.unit==='hours'?'selected':''}>hours</option>
+        <option ${c.unit==='minutes'?'selected':''}>minutes</option>
+      </select></div>`;
+  return `<input type="text" class="rt-crit" data-r="${ri}" data-c="${ci}" value="${(c.criteria || '').replace(/"/g,'&quot;')}" placeholder="Criteria…">`;
+}
 function renderRulesBuilder(){
-  const used = rules.map(r => r.cat);
-  const remaining = RULE_CATALOG.map((c, i) => used.includes(c.cat) ? '' : `<option value="${i}">${c.cat}</option>`).join('');
-  const rows = rules.map((r, i) => `
-    <div class="rt-row">
-      <div class="rt-rank"><span>${i+1}</span></div>
-      <div class="rt-cat">${r.cat}</div>
-      <div><input class="rt-input" data-i="${i}" value="${r.criteria.replace(/"/g,'&quot;')}" placeholder="Criteria…"></div>
-      <div><select class="rt-select" data-i="${i}">${assignOptionsHtml(r.assign)}</select></div>
-      <div class="rt-actions">
-        <button data-act="up" data-i="${i}" title="Move up" ${i===0?'disabled':''}>↑</button>
-        <button data-act="down" data-i="${i}" title="Move down" ${i===rules.length-1?'disabled':''}>↓</button>
-        <button data-act="remove" data-i="${i}" title="Remove">✕</button>
-      </div>
-    </div>`).join('');
+  const ranks = rules.map((rank, ri) => {
+    const conds = rank.conditions.map((c, ci) =>
+      `<div class="rt-cond"><select class="rt-catsel" data-r="${ri}" data-c="${ci}">${categoryOptionsHtml(c.category)}</select>${criteriaFieldHtml(ri, ci, c)}</div>`).join('');
+    const trailing = `<div class="rt-cond"><select class="rt-catsel" data-r="${ri}" data-c="${rank.conditions.length}">${categoryOptionsHtml('')}</select></div>`;
+    const assign = rank.conditions.length ? `<select class="rt-asg" data-r="${ri}">${assignOptionsHtml(rank.assign)}</select>` : '';
+    return `<div class="rt-rank-row">
+        <div class="rt-rank"><span>${ri+1}</span></div>
+        <div class="rt-conds">${conds}${trailing}</div>
+        <div class="rt-assign">${assign}</div>
+        <div class="rt-actions">
+          <button data-act="up" data-i="${ri}" title="Move up" ${ri===0?'disabled':''}>↑</button>
+          <button data-act="down" data-i="${ri}" title="Move down" ${ri===rules.length-1?'disabled':''}>↓</button>
+          <button data-act="remove" data-i="${ri}" title="Remove rank">✕</button>
+        </div>
+      </div>`;
+  }).join('');
   const table = rules.length
-    ? `<div class="rules-table builder"><div class="rt-head"><div>Rank</div><div>Category</div><div>Criteria</div><div>Assignment</div><div></div></div>${rows}${exceptionRow}</div>`
-    : `<div class="rules-table builder"><div class="rules-empty">No categories yet — add one above to start your hierarchy.</div></div>`;
+    ? `<div class="rules-table"><div class="rt-head2"><div class="hh-rank">Rank</div><div class="hh-conds"><div class="hh-cat">Category</div><div class="hh-crit">Criteria</div></div><div class="hh-assign">Assignment</div><div class="hh-act"></div></div>${ranks}${exceptionRow}</div>`
+    : `<div class="rules-table"><div class="rules-empty">No ranks yet — press “Add rank” to start your hierarchy.</div></div>`;
   document.getElementById('rulesWrap').innerHTML = `
     <button class="rules-back" id="rulesBack">← Settings</button>
     <div class="rules-title-row">
       <div>
         <div class="rules-h1">Bid Assignment Rules</div>
-        <div class="rules-sub">No hierarchy yet. Add categories in priority order — the first is Rank 1, the next Rank 2, and so on. For each, set the criteria and the estimator it routes to.</div>
+        <div class="rules-sub">Build the hierarchy in priority order (Rank 1 first). A rank can combine one or more categories; add a category, set its criteria, and choose one estimator for the whole rank.</div>
       </div>
-      <button class="m-btn primary" id="rulesSave" ${rules.length?'':'disabled'}>Save hierarchy</button>
+      <button class="m-btn primary" id="rulesSave" ${rules.some(r=>r.conditions.length)?'':'disabled'}>Save hierarchy</button>
     </div>
     <div class="add-cat">
-      <select id="addCatSel"><option value="">＋ Add category…</option>${remaining}</select>
+      <button class="m-btn add-rank" id="addRank">＋ Add rank</button>
       <button class="m-btn" id="loadExample">Load full PRD example</button>
     </div>
     ${table}`;
 }
 
 function renderRulesView(){
-  const rows = rules.map((r, i) => `
-    <div class="rt-row">
-      <div class="rt-rank"><span>${i+1}</span></div>
-      <div class="rt-cat">${r.cat}</div>
-      <div>${r.criteria}</div>
-      <div>${assignLabel(r.assign)}</div>
-    </div>`).join('');
+  const ranks = rules.map((rank, ri) =>
+    `<div class="rt-rank-row view">
+       <div class="rt-rank"><span>${ri+1}</span></div>
+       <div class="rt-conds">${rank.conditions.map(c => `<div class="rt-cond-view"><span class="cv-cat">${c.category}</span><span class="cv-crit">${condCriteria(c)}</span></div>`).join('')}</div>
+       <div class="rt-assign view">${assignLabel(rank.assign)}</div>
+     </div>`).join('');
   document.getElementById('rulesWrap').innerHTML = `
     <button class="rules-back" id="rulesBack">← Settings</button>
     <div class="rules-title-row">
@@ -1930,17 +2007,12 @@ function renderRulesView(){
       </div>
       <button class="m-btn" id="rulesEdit"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="margin-right:6px"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.8"/></svg>Edit</button>
     </div>
-    <div class="rules-table view">
-      <div class="rt-head"><div>Rank</div><div>Category</div><div>Criteria</div><div>Assignment</div></div>
-      ${rows}${exceptionRow}
+    <div class="rules-table">
+      <div class="rt-head2"><div class="hh-rank">Rank</div><div class="hh-conds"><div class="hh-cat">Category</div><div class="hh-crit">Criteria</div></div><div class="hh-assign">Assignment</div></div>
+      ${ranks}${exceptionRow}
     </div>`;
 }
 
-function addCategory(catIdx){
-  const c = RULE_CATALOG[catIdx];
-  if (c && !rules.some(r => r.cat === c.cat)) rules.push({ cat:c.cat, criteria:c.criteria, assign:c.assign });
-  renderRules();
-}
 function handleRowAction(act, i){
   if (act === 'remove') rules.splice(i, 1);
   else if (act === 'up' && i > 0) [rules[i-1], rules[i]] = [rules[i], rules[i-1]];
@@ -1950,16 +2022,30 @@ function handleRowAction(act, i){
 
 const rulesWrap = document.getElementById('rulesWrap');
 rulesWrap.addEventListener('input', e => {
-  if (e.target.classList.contains('rt-input')) rules[+e.target.dataset.i].criteria = e.target.value;
+  const t = e.target;
+  if (t.classList.contains('rt-crit')) rules[+t.dataset.r].conditions[+t.dataset.c].criteria = t.value;
+  else if (t.classList.contains('rt-urg-num')) rules[+t.dataset.r].conditions[+t.dataset.c].amount = t.value;
 });
 rulesWrap.addEventListener('change', e => {
-  if (e.target.id === 'addCatSel' && e.target.value !== '') addCategory(+e.target.value);
-  else if (e.target.classList.contains('rt-select')) rules[+e.target.dataset.i].assign = e.target.value;
+  const t = e.target;
+  if (t.classList.contains('rt-catsel')){
+    const r = +t.dataset.r, c = +t.dataset.c, rank = rules[r];
+    if (c < rank.conditions.length){
+      if (t.value === '') rank.conditions.splice(c, 1);                                  // deselect removes this condition
+      else rank.conditions[c] = t.value === 'Urgent' ? { category:'Urgent', amount:'', unit:'days' } : { category:t.value, criteria:'' };
+    } else if (t.value !== ''){                                                          // trailing dropdown -> add a condition
+      rank.conditions.push(t.value === 'Urgent' ? { category:'Urgent', amount:'', unit:'days' } : { category:t.value, criteria:'' });
+    }
+    renderRules();
+  }
+  else if (t.classList.contains('rt-urg-unit')) rules[+t.dataset.r].conditions[+t.dataset.c].unit = t.value;
+  else if (t.classList.contains('rt-asg')) rules[+t.dataset.r].assign = t.value;
 });
 rulesWrap.addEventListener('click', e => {
   const btn = e.target.closest('button'); if (!btn) return;
   if (btn.id === 'rulesBack') showPage('settings');
-  else if (btn.id === 'loadExample') { rules = RULE_CATALOG.map(c => ({ ...c })); renderRules(); }
+  else if (btn.id === 'addRank') { rules.push({ conditions:[], assign:'' }); renderRules(); }
+  else if (btn.id === 'loadExample') { rules = RULE_EXAMPLE.map(r => ({ assign:r.assign, conditions:r.conditions.map(c => ({ ...c })) })); renderRules(); }
   else if (btn.id === 'rulesSave') { rulesCreated = true; renderRules(); renderTodos(); showAppToast('Bid assignment rules saved — now driving routing.'); }
   else if (btn.id === 'rulesEdit') openPwModal();
   else if (btn.dataset.act) handleRowAction(btn.dataset.act, +btn.dataset.i);
